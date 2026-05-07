@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- KaTeX para renderizar matemática bonita -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <style>
   :root {
     --bg: #1a1814;
@@ -422,7 +425,7 @@
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 40px;
-    max-width: 540px;
+    max-width: 580px;
     width: 90%;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
     animation: slideUp 0.3s ease-out;
@@ -445,17 +448,22 @@
     margin-bottom: 28px;
   }
 
+  /* Questão e respostas com KaTeX renderizado */
   .question {
-    font-family: var(--mono);
-    font-size: 22px;
     background: var(--bg);
-    padding: 24px;
+    padding: 28px 24px;
     border-radius: 8px;
     margin-bottom: 24px;
     text-align: center;
     border: 1px solid var(--border);
     color: var(--text);
+    font-size: 26px;
+    min-height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
+  .question .katex { font-size: 1.4em; }
 
   .options {
     display: grid;
@@ -467,14 +475,18 @@
     background: var(--bg);
     border: 1px solid var(--border);
     color: var(--text);
-    padding: 16px;
+    padding: 18px 16px;
     border-radius: 8px;
     cursor: pointer;
-    font-family: var(--mono);
-    font-size: 15px;
+    font-size: 16px;
     transition: all 0.15s;
-    text-align: left;
+    text-align: center;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
+  .option .katex { font-size: 1.1em; }
   .option:hover {
     border-color: var(--accent);
     background: var(--bg-hover);
@@ -608,10 +620,12 @@ const state = {
   sessionsCompleted: 0,
   currentQuestion: null,
   customSound: null,
-  alarmAudioCtx: null,
-  alarmTimers: [],
-  alarmHtmlAudio: null,
-  alarmActive: false,
+
+  // Estado de áudio unificado — sempre só uma coisa toca por vez
+  currentAudioCtx: null,    // Web Audio (som default)
+  currentAudioElement: null, // <audio> (som customizado)
+  currentTimers: [],         // timeouts a limpar
+  isAlarmMode: false,        // true = alarme real, false = teste
 };
 
 const el = {
@@ -641,6 +655,7 @@ const el = {
   silenceBtn: document.getElementById('silenceBtn'),
 };
 
+// =========== TIMER ===========
 function formatTime(sec) {
   const m = Math.floor(sec / 60).toString().padStart(2, '0');
   const s = (sec % 60).toString().padStart(2, '0');
@@ -752,18 +767,49 @@ function sessionEnded() {
   updateStatus();
 }
 
-// =========== DESPERTADOR ===========
-// Som padrão: arpejo Mi-Sol-Si (acorde Em), 4 repetições com fade
-function playDefaultAlarm() {
-  if (state.alarmActive) return;
-  state.alarmActive = true;
-  el.silenceBtn.classList.add('show');
+// =========== ÁUDIO (UNIFICADO) ===========
+/**
+ * Para QUALQUER som que esteja tocando.
+ * Chamado antes de tocar qualquer som novo, e pelo botão Silenciar.
+ */
+function stopAllAudio() {
+  // Para áudio HTML
+  if (state.currentAudioElement) {
+    state.currentAudioElement.pause();
+    state.currentAudioElement.loop = false;
+    state.currentAudioElement.currentTime = 0;
+    state.currentAudioElement.onended = null;
+    state.currentAudioElement = null;
+  }
+  // Fecha Web Audio context
+  if (state.currentAudioCtx) {
+    try { state.currentAudioCtx.close(); } catch(e) {}
+    state.currentAudioCtx = null;
+  }
+  // Limpa timers
+  state.currentTimers.forEach(t => clearTimeout(t));
+  state.currentTimers = [];
+  // Reset UI
+  el.soundTestBtn.classList.remove('testing');
+  el.soundTestBtn.textContent = '▶ Testar';
+  state.isAlarmMode = false;
+  el.silenceBtn.classList.remove('show');
+}
+
+/**
+ * Toca o som default (acorde Em arpejado, fade suave).
+ * isAlarm=true → loop INFINITO até clicar em Silenciar.
+ * isAlarm=false → 1 repetição (teste).
+ */
+function playDefaultSound(isAlarm) {
+  stopAllAudio();
+  state.isAlarmMode = isAlarm;
+  if (isAlarm) el.silenceBtn.classList.add('show');
 
   try {
-    state.alarmAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const ctx = state.alarmAudioCtx;
-    const notes = [329.63, 392.00, 493.88];
-    const repetitions = 4;
+    state.currentAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = state.currentAudioCtx;
+    const notes = [329.63, 392.00, 493.88]; // E4, G4, B4
     const intervalSec = 1.8;
     const noteDuration = 1.4;
 
@@ -784,107 +830,93 @@ function playDefaultAlarm() {
       });
     }
 
-    const now = ctx.currentTime;
-    for (let r = 0; r < repetitions; r++) {
-      playChord(now + r * intervalSec);
+    if (isAlarm) {
+      // Alarme: agenda 8 acordes pra frente, e a cada 2 acordes
+      // reagenda mais 8 — efeito loop infinito até stopAllAudio.
+      // (O ctx.close() em stopAllAudio cancela tudo automaticamente.)
+      let scheduled = 0;
+      function scheduleBatch() {
+        if (!state.currentAudioCtx) return; // foi silenciado
+        const now = state.currentAudioCtx.currentTime;
+        const batchSize = 8;
+        for (let r = 0; r < batchSize; r++) {
+          playChord(now + r * intervalSec);
+        }
+        scheduled++;
+        // Reagenda quando faltarem ~2 acordes pra acabar a fila
+        const reagendarEm = (batchSize - 2) * intervalSec * 1000;
+        const t = setTimeout(scheduleBatch, reagendarEm);
+        state.currentTimers.push(t);
+      }
+      scheduleBatch();
+    } else {
+      // Teste: 1 acorde só
+      const now = ctx.currentTime;
+      playChord(now);
+      el.soundTestBtn.classList.add('testing');
+      el.soundTestBtn.textContent = '⏸ Parar';
+      const totalMs = (intervalSec + noteDuration) * 1000;
+      const t = setTimeout(() => stopAllAudio(), totalMs);
+      state.currentTimers.push(t);
     }
-
-    const totalMs = (repetitions * intervalSec + noteDuration) * 1000;
-    const timeout = setTimeout(() => silenceAlarm(), totalMs);
-    state.alarmTimers.push(timeout);
   } catch (e) {
     console.error('Erro no áudio:', e);
-    state.alarmActive = false;
-    el.silenceBtn.classList.remove('show');
+    stopAllAudio();
   }
 }
 
-function playCustomAlarm() {
-  if (state.alarmActive) return;
-  state.alarmActive = true;
-  el.silenceBtn.classList.add('show');
+/**
+ * Toca o som customizado.
+ * isAlarm=true → loop INFINITO até clicar em Silenciar.
+ * isAlarm=false → toca por NO MÁXIMO 5s, sem loop (apenas pra ouvir uma amostra).
+ */
+function playCustomSound(isAlarm) {
+  stopAllAudio();
+  state.isAlarmMode = isAlarm;
+  if (isAlarm) el.silenceBtn.classList.add('show');
 
   try {
     const audio = state.customSound.audioElement;
     audio.currentTime = 0;
-    audio.loop = true;
+    audio.loop = isAlarm;
     audio.play();
-    state.alarmHtmlAudio = audio;
-    const timeout = setTimeout(() => silenceAlarm(), 30000);
-    state.alarmTimers.push(timeout);
+    state.currentAudioElement = audio;
+
+    if (isAlarm) {
+      // Alarme: loop infinito até clicar em Silenciar. Nada de timeout.
+    } else {
+      // Teste: para depois de 5s no máximo
+      el.soundTestBtn.classList.add('testing');
+      el.soundTestBtn.textContent = '⏸ Parar';
+      const t = setTimeout(() => stopAllAudio(), 5000);
+      state.currentTimers.push(t);
+      // Se o áudio acabar antes dos 5s, libera o botão
+      audio.onended = () => stopAllAudio();
+    }
   } catch (e) {
     console.error('Erro no áudio customizado:', e);
-    silenceAlarm();
+    stopAllAudio();
   }
 }
 
 function playAlarm() {
   if (state.customSound) {
-    playCustomAlarm();
+    playCustomSound(true);
   } else {
-    playDefaultAlarm();
-  }
-}
-
-function silenceAlarm() {
-  state.alarmActive = false;
-  el.silenceBtn.classList.remove('show');
-
-  if (state.alarmHtmlAudio) {
-    state.alarmHtmlAudio.pause();
-    state.alarmHtmlAudio.loop = false;
-    state.alarmHtmlAudio.currentTime = 0;
-    state.alarmHtmlAudio = null;
-  }
-
-  state.alarmTimers.forEach(t => clearTimeout(t));
-  state.alarmTimers = [];
-
-  if (state.alarmAudioCtx) {
-    try { state.alarmAudioCtx.close(); } catch(e) {}
-    state.alarmAudioCtx = null;
+    playDefaultSound(true);
   }
 }
 
 function testSound() {
-  if (state.alarmActive) {
-    silenceAlarm();
+  // Se já tá tocando, o clique para
+  if (state.currentAudioCtx || state.currentAudioElement) {
+    stopAllAudio();
     return;
   }
-
   if (state.customSound) {
-    const audio = state.customSound.audioElement;
-    audio.currentTime = 0;
-    audio.loop = false;
-    audio.play();
-    el.soundTestBtn.classList.add('testing');
-    audio.onended = () => el.soundTestBtn.classList.remove('testing');
+    playCustomSound(false);
   } else {
-    el.soundTestBtn.classList.add('testing');
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const notes = [329.63, 392.00, 493.88];
-      notes.forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        const t0 = ctx.currentTime + i * 0.08;
-        gain.gain.setValueAtTime(0, t0);
-        gain.gain.linearRampToValueAtTime(0.18, t0 + 0.2);
-        gain.gain.exponentialRampToValueAtTime(0.001, t0 + 1.4);
-        osc.start(t0);
-        osc.stop(t0 + 1.4);
-      });
-      setTimeout(() => {
-        el.soundTestBtn.classList.remove('testing');
-        ctx.close();
-      }, 1700);
-    } catch(e) {
-      el.soundTestBtn.classList.remove('testing');
-    }
+    playDefaultSound(false);
   }
 }
 
@@ -896,6 +928,9 @@ function handleSoundUpload(e) {
     alert('Por favor selecione um arquivo de áudio (MP3, WAV, OGG, etc).');
     return;
   }
+
+  // Para qualquer som que esteja tocando antes de trocar
+  stopAllAudio();
 
   if (state.customSound) {
     URL.revokeObjectURL(state.customSound.audioElement.src);
@@ -916,6 +951,9 @@ function handleSoundUpload(e) {
 }
 
 function removeCustomSound() {
+  // Para qualquer som tocando antes de trocar
+  stopAllAudio();
+
   if (state.customSound) {
     URL.revokeObjectURL(state.customSound.audioElement.src);
     state.customSound = null;
@@ -973,33 +1011,47 @@ function addTask() {
   renderTasks();
 }
 
-// =========== DESAFIO MATEMÁTICO ===========
+// =========== DESAFIO MATEMÁTICO (LATEX/KaTeX) ===========
+// Cada questão usa LaTeX. KaTeX renderiza isso como notação matemática real.
 const QUESTIONS = [
-  { q: "d/dx [ x³ + 2x ]", correct: "3x² + 2", wrong: ["3x² + 2x", "x² + 2", "3x³ + 2"] },
-  { q: "d/dx [ sen(2x) ]", correct: "2cos(2x)", wrong: ["cos(2x)", "-2cos(2x)", "2sen(2x)"] },
-  { q: "d/dx [ cos(x²) ]", correct: "-2x·sen(x²)", wrong: ["2x·sen(x²)", "-sen(x²)", "-2x·cos(x²)"] },
-  { q: "d/dx [ e^(3x) ]", correct: "3e^(3x)", wrong: ["e^(3x)", "3xe^(3x)", "e^(3x)/3"] },
-  { q: "d/dx [ ln(x²+1) ]", correct: "2x/(x²+1)", wrong: ["1/(x²+1)", "2x", "2/(x²+1)"] },
-  { q: "d/dx [ (x+1)⁵ ]", correct: "5(x+1)⁴", wrong: ["(x+1)⁴", "5(x+1)⁵", "5x⁴"] },
-  { q: "d/dx [ x / (x+1) ]", correct: "1/(x+1)²", wrong: ["1/(x+1)", "-1/(x+1)²", "x/(x+1)²"] },
-  { q: "d/dx [ (2x+1)/x ]", correct: "-1/x²", wrong: ["1/x²", "2/x", "(2x-1)/x²"] },
-  { q: "d/dx [ sen(x)/x ]", correct: "(x·cos(x) - sen(x))/x²", wrong: ["cos(x)/x", "(cos(x) - sen(x))/x²", "(sen(x) - x·cos(x))/x²"] },
-  { q: "d/dx [ x²·sen(x) ]", correct: "2x·sen(x) + x²·cos(x)", wrong: ["2x·cos(x)", "x²·cos(x)", "2x·sen(x) - x²·cos(x)"] },
-  { q: "d/dx [ x·e^x ]", correct: "e^x(1 + x)", wrong: ["e^x", "x·e^x", "e^x(x - 1)"] },
-  { q: "d/dx [ 3x² + 5x - 7 ]", correct: "6x + 5", wrong: ["6x + 5x", "3x + 5", "6x²+ 5"] },
-  { q: "∫ 2x dx", correct: "x² + C", wrong: ["2x² + C", "x²/2 + C", "2 + C"] },
-  { q: "∫ cos(x) dx", correct: "sen(x) + C", wrong: ["-sen(x) + C", "cos(x) + C", "-cos(x) + C"] },
-  { q: "∫ e^x dx", correct: "e^x + C", wrong: ["xe^x + C", "e^x/x + C", "ln(x) + C"] },
-  { q: "∫ 1/x dx", correct: "ln|x| + C", wrong: ["1/x² + C", "-1/x² + C", "x + C"] },
-  { q: "∫ x² dx", correct: "x³/3 + C", wrong: ["2x + C", "x³ + C", "3x³ + C"] },
-  { q: "∫ sen(2x) dx", correct: "-cos(2x)/2 + C", wrong: ["cos(2x)/2 + C", "-2cos(2x) + C", "-cos(2x) + C"] },
-  { q: "∫ e^(2x) dx", correct: "e^(2x)/2 + C", wrong: ["2e^(2x) + C", "e^(2x) + C", "e^(x) + C"] },
-  { q: "∫ 2x·cos(x²) dx", correct: "sen(x²) + C", wrong: ["cos(x²) + C", "-sen(x²) + C", "2sen(x²) + C"] },
-  { q: "∫ (2x+1)·(x²+x)⁴ dx", correct: "(x²+x)⁵/5 + C", wrong: ["(x²+x)⁵ + C", "5(x²+x)⁵ + C", "(x²+x)⁴/4 + C"] },
-  { q: "∫ x·e^x dx", correct: "e^x(x - 1) + C", wrong: ["x·e^x + C", "e^x(x + 1) + C", "x²e^x/2 + C"] },
-  { q: "∫ x·cos(x) dx", correct: "x·sen(x) + cos(x) + C", wrong: ["x·sen(x) - cos(x) + C", "sen(x) + C", "-x·sen(x) + cos(x) + C"] },
-  { q: "∫ ln(x) dx", correct: "x·ln(x) - x + C", wrong: ["1/x + C", "ln(x) + C", "x·ln(x) + x + C"] },
-  { q: "∫ (3x² + 4x) dx", correct: "x³ + 2x² + C", wrong: ["6x + 4 + C", "x³ + 4x² + C", "3x³ + 2x² + C"] },
+  // DERIVADAS — polinômios e regras básicas
+  { q: "\\frac{d}{dx}\\left[ x^3 + 2x \\right]", correct: "3x^2 + 2", wrong: ["3x^2 + 2x", "x^2 + 2", "3x^3 + 2"] },
+  { q: "\\frac{d}{dx}\\left[ 3x^2 + 5x - 7 \\right]", correct: "6x + 5", wrong: ["6x + 5x", "3x + 5", "6x^2 + 5"] },
+
+  // DERIVADAS — regra da cadeia
+  { q: "\\frac{d}{dx}\\left[ \\sin(2x) \\right]", correct: "2\\cos(2x)", wrong: ["\\cos(2x)", "-2\\cos(2x)", "2\\sin(2x)"] },
+  { q: "\\frac{d}{dx}\\left[ \\cos(x^2) \\right]", correct: "-2x\\sin(x^2)", wrong: ["2x\\sin(x^2)", "-\\sin(x^2)", "-2x\\cos(x^2)"] },
+  { q: "\\frac{d}{dx}\\left[ e^{3x} \\right]", correct: "3e^{3x}", wrong: ["e^{3x}", "3xe^{3x}", "\\frac{e^{3x}}{3}"] },
+  { q: "\\frac{d}{dx}\\left[ \\ln(x^2+1) \\right]", correct: "\\frac{2x}{x^2+1}", wrong: ["\\frac{1}{x^2+1}", "2x", "\\frac{2}{x^2+1}"] },
+  { q: "\\frac{d}{dx}\\left[ (x+1)^5 \\right]", correct: "5(x+1)^4", wrong: ["(x+1)^4", "5(x+1)^5", "5x^4"] },
+
+  // DERIVADAS — quociente
+  { q: "\\frac{d}{dx}\\left[ \\dfrac{x}{x+1} \\right]", correct: "\\dfrac{1}{(x+1)^2}", wrong: ["\\dfrac{1}{x+1}", "-\\dfrac{1}{(x+1)^2}", "\\dfrac{x}{(x+1)^2}"] },
+  { q: "\\frac{d}{dx}\\left[ \\dfrac{2x+1}{x} \\right]", correct: "-\\dfrac{1}{x^2}", wrong: ["\\dfrac{1}{x^2}", "\\dfrac{2}{x}", "\\dfrac{2x-1}{x^2}"] },
+  { q: "\\frac{d}{dx}\\left[ \\dfrac{\\sin(x)}{x} \\right]", correct: "\\dfrac{x\\cos(x) - \\sin(x)}{x^2}", wrong: ["\\dfrac{\\cos(x)}{x}", "\\dfrac{\\cos(x) - \\sin(x)}{x^2}", "\\dfrac{\\sin(x) - x\\cos(x)}{x^2}"] },
+
+  // DERIVADAS — produto
+  { q: "\\frac{d}{dx}\\left[ x^2 \\sin(x) \\right]", correct: "2x\\sin(x) + x^2\\cos(x)", wrong: ["2x\\cos(x)", "x^2\\cos(x)", "2x\\sin(x) - x^2\\cos(x)"] },
+  { q: "\\frac{d}{dx}\\left[ x \\cdot e^x \\right]", correct: "e^x(1 + x)", wrong: ["e^x", "x e^x", "e^x(x - 1)"] },
+
+  // INTEGRAIS — básicas
+  { q: "\\int 2x \\, dx", correct: "x^2 + C", wrong: ["2x^2 + C", "\\frac{x^2}{2} + C", "2 + C"] },
+  { q: "\\int \\cos(x) \\, dx", correct: "\\sin(x) + C", wrong: ["-\\sin(x) + C", "\\cos(x) + C", "-\\cos(x) + C"] },
+  { q: "\\int e^x \\, dx", correct: "e^x + C", wrong: ["xe^x + C", "\\dfrac{e^x}{x} + C", "\\ln(x) + C"] },
+  { q: "\\int \\frac{1}{x} \\, dx", correct: "\\ln|x| + C", wrong: ["\\dfrac{1}{x^2} + C", "-\\dfrac{1}{x^2} + C", "x + C"] },
+  { q: "\\int x^2 \\, dx", correct: "\\dfrac{x^3}{3} + C", wrong: ["2x + C", "x^3 + C", "3x^3 + C"] },
+  { q: "\\int (3x^2 + 4x) \\, dx", correct: "x^3 + 2x^2 + C", wrong: ["6x + 4 + C", "x^3 + 4x^2 + C", "3x^3 + 2x^2 + C"] },
+
+  // INTEGRAIS — substituição
+  { q: "\\int \\sin(2x) \\, dx", correct: "-\\dfrac{\\cos(2x)}{2} + C", wrong: ["\\dfrac{\\cos(2x)}{2} + C", "-2\\cos(2x) + C", "-\\cos(2x) + C"] },
+  { q: "\\int e^{2x} \\, dx", correct: "\\dfrac{e^{2x}}{2} + C", wrong: ["2e^{2x} + C", "e^{2x} + C", "e^x + C"] },
+  { q: "\\int 2x \\cos(x^2) \\, dx", correct: "\\sin(x^2) + C", wrong: ["\\cos(x^2) + C", "-\\sin(x^2) + C", "2\\sin(x^2) + C"] },
+  { q: "\\int (2x+1)(x^2+x)^4 \\, dx", correct: "\\dfrac{(x^2+x)^5}{5} + C", wrong: ["(x^2+x)^5 + C", "5(x^2+x)^5 + C", "\\dfrac{(x^2+x)^4}{4} + C"] },
+
+  // INTEGRAÇÃO POR PARTES
+  { q: "\\int x \\cdot e^x \\, dx", correct: "e^x(x - 1) + C", wrong: ["x e^x + C", "e^x(x + 1) + C", "\\dfrac{x^2 e^x}{2} + C"] },
+  { q: "\\int x \\cos(x) \\, dx", correct: "x\\sin(x) + \\cos(x) + C", wrong: ["x\\sin(x) - \\cos(x) + C", "\\sin(x) + C", "-x\\sin(x) + \\cos(x) + C"] },
+  { q: "\\int \\ln(x) \\, dx", correct: "x\\ln(x) - x + C", wrong: ["\\dfrac{1}{x} + C", "\\ln(x) + C", "x\\ln(x) + x + C"] },
 ];
 
 function shuffleArray(arr) {
@@ -1009,6 +1061,24 @@ function shuffleArray(arr) {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
+}
+
+// Renderiza LaTeX com KaTeX. Se KaTeX ainda não carregou, mostra o texto cru
+// como fallback e tenta renderizar de novo em 100ms.
+function renderMath(element, latex, displayMode) {
+  if (typeof katex !== 'undefined') {
+    try {
+      katex.render(latex, element, {
+        throwOnError: false,
+        displayMode: displayMode,
+      });
+    } catch (e) {
+      element.textContent = latex;
+    }
+  } else {
+    element.textContent = latex;
+    setTimeout(() => renderMath(element, latex, displayMode), 100);
+  }
 }
 
 function showMathChallenge() {
@@ -1021,13 +1091,15 @@ function showMathChallenge() {
 function loadNewQuestion() {
   const q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
   state.currentQuestion = q;
-  el.question.textContent = q.q;
+  renderMath(el.question, q.q, true);
+
   const allOptions = shuffleArray([q.correct, ...q.wrong]);
   el.options.innerHTML = '';
   allOptions.forEach(opt => {
     const btn = document.createElement('button');
     btn.className = 'option';
-    btn.textContent = opt;
+    btn.dataset.value = opt;
+    renderMath(btn, opt, false);
     btn.onclick = () => checkAnswer(opt, btn);
     el.options.appendChild(btn);
   });
@@ -1077,7 +1149,7 @@ el.soundTestBtn.addEventListener('click', testSound);
 el.soundUploadBtn.addEventListener('click', () => el.soundFileInput.click());
 el.soundFileInput.addEventListener('change', handleSoundUpload);
 el.soundRemoveBtn.addEventListener('click', removeCustomSound);
-el.silenceBtn.addEventListener('click', silenceAlarm);
+el.silenceBtn.addEventListener('click', stopAllAudio);
 
 updateDisplay();
 updateStatus();
