@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Foco — Pomodoro</title>
+<title>Kairós — o momento certo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -69,8 +69,177 @@
     font-weight: 300;
     font-style: italic;
     letter-spacing: -0.02em;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    user-select: none;
   }
+  .brand:hover { opacity: 0.7; }
   .brand span { color: var(--accent); }
+
+  /* MANIFESTO KAIRÓS — modal estilizado como página de dicionário/livro */
+  .manifesto-modal {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0;
+    max-width: 680px;
+    width: 100%;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s ease-out;
+    margin: auto;
+    overflow: hidden;
+  }
+  .manifesto-content {
+    padding: 56px 60px 48px;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .manifesto-content::-webkit-scrollbar { width: 6px; }
+  .manifesto-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .manifesto-word {
+    font-family: var(--serif);
+    font-size: 64px;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  .manifesto-word .dot { color: var(--accent); }
+
+  .manifesto-pronunciation {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--text-faint);
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+
+  .manifesto-class {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 36px;
+  }
+
+  .manifesto-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 0 32px;
+  }
+
+  .manifesto-section {
+    margin-bottom: 32px;
+  }
+  .manifesto-section:last-child { margin-bottom: 0; }
+
+  .manifesto-section-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 14px;
+  }
+
+  .manifesto-definition {
+    font-family: var(--serif);
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+  .manifesto-definition .num {
+    color: var(--text-faint);
+    font-weight: 600;
+    margin-right: 10px;
+    font-family: var(--sans);
+    font-size: 14px;
+  }
+
+  .manifesto-etymology {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-dim);
+  }
+  .manifesto-etymology strong {
+    color: var(--text);
+    font-style: normal;
+    font-weight: 400;
+  }
+
+  .manifesto-quote {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 22px;
+    line-height: 1.5;
+    color: var(--text);
+    text-align: center;
+    padding: 24px 20px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+  .manifesto-quote-author {
+    font-family: var(--sans);
+    font-style: normal;
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 12px;
+    text-align: center;
+  }
+
+  .manifesto-body {
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  .manifesto-body p { margin-bottom: 14px; }
+  .manifesto-body p:last-child { margin-bottom: 0; }
+  .manifesto-body em {
+    color: var(--accent);
+    font-style: italic;
+    font-family: var(--serif);
+  }
+
+  .manifesto-close {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-elevated);
+    padding: 20px 60px 28px;
+    border-top: 1px solid var(--border);
+    margin: 32px -60px -48px;
+  }
+  .manifesto-close button {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 12px 24px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: var(--sans);
+    width: 100%;
+    transition: all 0.15s;
+  }
+  .manifesto-close button:hover {
+    color: var(--text);
+    border-color: var(--accent);
+  }
+
+  @media (max-width: 600px) {
+    .manifesto-content { padding: 40px 32px 32px; }
+    .manifesto-word { font-size: 48px; }
+    .manifesto-close { padding: 16px 32px 24px; margin: 24px -32px -32px; }
+  }
 
   .section-label {
     font-size: 11px;
@@ -659,7 +828,7 @@
 <body>
 <div class="app">
   <aside class="sidebar">
-    <div class="brand">foco<span>.</span></div>
+    <div class="brand" id="brandClickable" title="O que significa kairós">kairós<span>.</span></div>
 
     <div>
       <div class="section-label">Tempo</div>
@@ -792,6 +961,53 @@
   </div>
 </div>
 
+<!-- MODAL: Manifesto Kairós -->
+<div class="modal-overlay" id="manifestoModal">
+  <div class="manifesto-modal">
+    <div class="manifesto-content">
+      <div class="manifesto-word">kairós<span class="dot">.</span></div>
+      <div class="manifesto-pronunciation">/kai̯.ˈɾɔs/ &nbsp;·&nbsp; do grego antigo καιρός</div>
+      <div class="manifesto-class">substantivo masculino</div>
+
+      <div class="manifesto-divider"></div>
+
+      <div class="manifesto-section">
+        <div class="manifesto-section-label">Definição</div>
+        <div class="manifesto-definition"><span class="num">1.</span>O momento exato. O instante decisivo em que algo precisa acontecer — e se não acontece, passa.</div>
+        <div class="manifesto-definition"><span class="num">2.</span>O tempo qualitativo, oposto ao tempo do relógio. Não se mede em minutos: se reconhece quando chega.</div>
+        <div class="manifesto-definition"><span class="num">3.</span>A janela em que ação e oportunidade se encontram. O agora que não se repete.</div>
+      </div>
+
+      <div class="manifesto-section">
+        <div class="manifesto-section-label">Etimologia</div>
+        <div class="manifesto-etymology">
+          Os gregos tinham duas palavras para tempo. <strong>Chronos</strong> era o tempo que passa — sequencial, mensurável, indiferente. <strong>Kairós</strong> era outra coisa: o tempo que importa. O instante em que o arqueiro solta a flecha. O segundo em que o lutador entra. O momento em que você decide trabalhar, ou decide adiar mais uma vez.
+        </div>
+      </div>
+
+      <div class="manifesto-quote">
+        "Há um tempo para cada coisa.<br/>Mas só um momento certo para cada uma."
+        <div class="manifesto-quote-author">— provérbio grego</div>
+      </div>
+
+      <div class="manifesto-section">
+        <div class="manifesto-section-label">Por quê esse nome</div>
+        <div class="manifesto-body">
+          <p>Você não precisa de mais um app de produtividade. Precisa de um lembrete brutal de que <em>o momento certo é agora</em>.</p>
+          <p>Não amanhã, quando estiver descansado. Não na segunda, quando começar a semana. Não depois do café, da próxima música, da última notificação. Agora.</p>
+          <p>Kairós é a filosofia de quem percebeu que <em>chronos não espera</em>. Cada hora que passa é uma hora a menos com o sonho. Cada distração é um arqueiro que abaixou o arco no instante em que o alvo apareceu.</p>
+          <p>Esse app foi feito pra te empurrar de volta pro instante. Pra te impedir de fugir do trabalho que você mesmo escolheu. Pra trocar a procrastinação por presença.</p>
+          <p>Aqui não tem motivação fofa. Tem fricção construída de propósito. Resolve uma integral pra parar antes da hora. Lê uma frase dura toda manhã. Audita o que você prometeu e o que você fez. <em>Sem julgamento. Só verdade.</em></p>
+          <p>Porque o talento que você tem não importa se você não estiver no kairós quando ele aparecer.</p>
+        </div>
+      </div>
+    </div>
+    <div class="manifesto-close">
+      <button id="closeManifestoBtn">Voltar pro foco</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // =========== STORAGE ===========
 const STORAGE = {
@@ -880,7 +1096,7 @@ const DEFAULT_QUOTES = [
 
 // Fonte das frases pra exibir abaixo
 function getQuoteSource(text, userQuotes) {
-  return userQuotes.includes(text) ? 'sua' : 'foco.';
+  return userQuotes.includes(text) ? 'sua' : 'kairós.';
 }
 
 // Pega frase do dia: usa data como seed pra rotação determinística
@@ -1033,7 +1249,7 @@ function formatTime(sec) {
 }
 function updateDisplay() {
   el.display.textContent = formatTime(state.remainingSec);
-  document.title = `${formatTime(state.remainingSec)} — ${state.isBreak ? 'Descanso' : 'Foco'}`;
+  document.title = `${formatTime(state.remainingSec)} — ${state.isBreak ? 'descanso' : 'kairós'}`;
 }
 function updateStatus() {
   if (!state.isRunning) {
@@ -1375,7 +1591,7 @@ function goToToday() {
 // =========== FRASE DO DIA + COMPROMISSO ===========
 function getAllQuotes() {
   return [
-    ...DEFAULT_QUOTES.map(t => ({ text: t, source: 'foco.' })),
+    ...DEFAULT_QUOTES.map(t => ({ text: t, source: 'kairós.' })),
     ...state.userQuotes.map(t => ({ text: t, source: 'sua' })),
   ];
 }
@@ -1516,7 +1732,7 @@ function renderQuotesList() {
     div.className = 'quote-row';
     div.innerHTML = `
       <div class="quote-text">"${escapeHtml(text)}"</div>
-      <div class="quote-source">foco.</div>
+      <div class="quote-source">kairós.</div>
     `;
     el.quotesList.appendChild(div);
   });
@@ -1647,6 +1863,20 @@ el.promiseBanner.addEventListener('click', () => {
   if (state.todayPromise) {
     alert(`"${state.todayPromise.text}"\n\nLembra disso quando a vontade fraquejar.`);
   }
+});
+
+// Manifesto Kairós
+const brandClickable = document.getElementById('brandClickable');
+const manifestoModal = document.getElementById('manifestoModal');
+const closeManifestoBtn = document.getElementById('closeManifestoBtn');
+brandClickable.addEventListener('click', () => {
+  manifestoModal.classList.add('show');
+  // Volta scroll ao topo cada vez que abre
+  manifestoModal.querySelector('.manifesto-content').scrollTop = 0;
+});
+closeManifestoBtn.addEventListener('click', () => manifestoModal.classList.remove('show'));
+manifestoModal.addEventListener('click', (e) => {
+  if (e.target === manifestoModal) manifestoModal.classList.remove('show');
 });
 
 // Auditoria
