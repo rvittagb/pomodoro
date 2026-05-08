@@ -277,6 +277,69 @@
   .time-input-group input:focus { outline: none; border-color: var(--accent); }
   .time-input-group input:disabled { opacity: 0.4; cursor: not-allowed; }
 
+  /* PREFERÊNCIAS */
+  .pref-row {
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .pref-label {
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pref-label input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .pref-select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-family: var(--sans);
+    font-size: 13px;
+    cursor: pointer;
+    color-scheme: dark;
+  }
+  .pref-select:focus { outline: none; border-color: var(--accent); }
+  .pref-hint {
+    font-size: 11px;
+    color: var(--text-faint);
+    font-style: italic;
+    margin-left: 22px;
+  }
+  .pref-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .pref-btn {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: var(--sans);
+    transition: all 0.15s;
+  }
+  .pref-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--bg-hover);
+  }
+
   /* Som */
   .sound-config { display: flex; flex-direction: column; gap: 10px; }
   .sound-current {
@@ -471,6 +534,21 @@
     user-select: none;
   }
   .timer-display.break { color: var(--success); }
+  .timer-display.hidden {
+    color: transparent;
+    text-shadow: none;
+    user-select: none;
+  }
+  .timer-display.hidden::after {
+    content: '✦';
+    color: var(--text-faint);
+    font-size: 60px;
+    font-style: normal;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .timer-display { position: relative; }
 
   .timer-controls { display: flex; gap: 16px; }
 
@@ -845,6 +923,38 @@
     </div>
 
     <div>
+      <div class="section-label">Preferências</div>
+      <div class="pref-row">
+        <label class="pref-label">Dificuldade matemática</label>
+        <select id="mathDifficultySelect" class="pref-select">
+          <option value="facil">Fácil</option>
+          <option value="medio" selected>Médio</option>
+          <option value="dificil">Difícil</option>
+          <option value="tudo">Tudo (aleatório)</option>
+        </select>
+      </div>
+      <div class="pref-row">
+        <label class="pref-label">
+          <input type="checkbox" id="deepWorkToggle">
+          <span>Modo deep work</span>
+        </label>
+        <span class="pref-hint">timer some durante o foco</span>
+      </div>
+      <div class="pref-row">
+        <label class="pref-label">
+          <input type="checkbox" id="notificationsToggle">
+          <span>Notificações</span>
+        </label>
+        <span class="pref-hint">avisa quando a sessão termina</span>
+      </div>
+      <div class="pref-actions">
+        <button class="pref-btn" id="exportBtn">↓ Exportar</button>
+        <button class="pref-btn" id="importBtn">↑ Importar</button>
+        <input type="file" id="importFileInput" accept="application/json" style="display:none;">
+      </div>
+    </div>
+
+    <div>
       <div class="section-label">Despertador</div>
       <div class="sound-config">
         <div class="sound-current">
@@ -1019,6 +1129,7 @@ const STORAGE = {
   AUDITS: 'foco.audits',             // { "YYYY-MM-DD": { tasks: {taskId: status}, promiseFulfilled: bool } }
   LAST_OPEN_DATE: 'foco.lastOpenDate',
   WEEK_STATS: 'foco.weekStats',      // { weekKey, wins, losses }
+  PREFERENCES: 'foco.preferences',   // { mathDifficulty, deepWorkMode, notificationsEnabled }
 };
 
 function loadFromStorage(key, fallback) {
@@ -1092,6 +1203,50 @@ const DEFAULT_QUOTES = [
   "A dor de não fazer dura mais que a dor de fazer.",
   "Não é sobre como você se sente. É sobre o que precisa ser feito.",
   "Quem trabalha quando os outros descansam, descansa quando os outros trabalham.",
+
+  // Tom firme — extras
+  "Foco é a forma mais cara de amor próprio.",
+  "Você pode ter desculpas ou resultados. Os dois não cabem.",
+  "Hoje vai virar ontem. A pergunta é: orgulho ou peso?",
+  "Disciplina não é punição. É liberdade futura comprada à vista.",
+  "Cada distração é um voto contra quem você quer ser.",
+  "Sua vida é a soma das suas próximas duas horas, repetidas.",
+  "O que vale a pena ser feito vale a pena ser feito direito, mesmo cansado.",
+  "Comprometimento é o que separa intenção de identidade.",
+  "Você não tem tempo. Você tem prioridades.",
+  "Pequenas vitórias diárias somam mais que grandes esforços esporádicos.",
+  "A versão de você de daqui a 5 anos depende dos próximos 5 minutos.",
+  "Procrastinar é roubar do seu eu futuro pra agradar seu eu de agora.",
+  "Quem não decide, é decidido.",
+  "A diferença entre profissional e amador é fazer mesmo sem inspiração.",
+  "Trabalho profundo é raro. Por isso é valioso.",
+  "Você não precisa ver a escada inteira. Só o próximo degrau.",
+  "Foco é dizer não a 99 boas oportunidades pra dizer sim a uma certa.",
+  "Constância na ausência de motivação é o que constrói tudo.",
+  "Não confunda movimento com progresso.",
+  "Sua atenção é o ativo mais escasso que você tem. Use com nojo de gastar.",
+  "O início é sempre desconfortável. É assim que você sabe que importa.",
+  "Você é tão bom quanto seu próximo bloco de trabalho.",
+  "Quem foca uma hora, ganha quatro.",
+  "Mente forte é mente treinada. Treino é foco repetido.",
+
+  // Tom mais áspero — extras
+  "Para de querer e começa a fazer.",
+  "Sua geração não vai esperar você.",
+  "A pessoa que você invejava aos 30 começou aos 22.",
+  "Reclamação é o vício mais barato e o mais caro ao mesmo tempo.",
+  "Não tem milagre. Tem trabalho ou não tem.",
+  "Se você não tá disposto a sofrer agora, vai sofrer depois — e mais.",
+  "Sua vontade de chegar é menor que sua vontade de descansar. Por isso ainda não chegou.",
+  "Pega o que você tá adiando e faz por 25 minutos. Só isso.",
+  "Você não tá esperando o momento certo. Tá fugindo dele.",
+  "Hoje é o pior dia pra começar — exceto por todos os outros.",
+  "Quem tem fome come o que tem.",
+  "Cabeça cheia de dúvida tá vazia de ação.",
+  "Não dói tanto quanto você acha. Dói o tanto certo.",
+  "A diferença entre você e quem chegou é que ele continuou quando deu vontade de parar.",
+  "Sua pior versão tá te observando agora pra ver se você cede.",
+  "Trabalha sem testemunha. É aí que se constrói gente de valor.",
 ];
 
 // Fonte das frases pra exibir abaixo
@@ -1137,6 +1292,12 @@ const state = {
   // Compromisso do dia (frase + flag)
   todayPromise: null,    // { text, committed }
   pendingQuote: null,    // frase aguardando confirmação no modal
+
+  // Dificuldade matemática: 'facil', 'medio' (default), 'dificil', 'tudo'
+  mathDifficulty: 'medio',
+
+  // Modo deep work: timer fica oculto durante o foco
+  deepWorkMode: false,
 
   // Stats da semana (vitórias contra desistir + rendições)
   weekStats: { weekKey: '', wins: 0, losses: 0 },
@@ -1198,6 +1359,12 @@ const el = {
   newQuoteInput: document.getElementById('newQuoteInput'),
   addQuoteBtn: document.getElementById('addQuoteBtn'),
   closeQuotesBtn: document.getElementById('closeQuotesBtn'),
+  mathDifficultySelect: document.getElementById('mathDifficultySelect'),
+  deepWorkToggle: document.getElementById('deepWorkToggle'),
+  notificationsToggle: document.getElementById('notificationsToggle'),
+  exportBtn: document.getElementById('exportBtn'),
+  importBtn: document.getElementById('importBtn'),
+  importFileInput: document.getElementById('importFileInput'),
 };
 
 // =========== DATAS ===========
@@ -1260,7 +1427,12 @@ function updateStatus() {
     el.display.className = 'timer-display break';
   } else {
     el.status.textContent = 'Em foco';
-    el.display.className = 'timer-display running';
+    // Deep work: durante o foco (não no descanso), esconde o timer
+    if (state.deepWorkMode) {
+      el.display.className = 'timer-display hidden';
+    } else {
+      el.display.className = 'timer-display running';
+    }
   }
   el.stopBtn.textContent = state.isBreak ? 'Pular descanso' : 'Parar';
 }
@@ -1311,6 +1483,7 @@ function sessionEnded() {
   clearInterval(state.intervalId);
   playAlarm();
   if (state.isBreak) {
+    sendNotification('Descanso terminou', 'Hora de voltar pro foco.');
     state.isBreak = false;
     state.remainingSec = state.focusMin*60;
     state.isRunning = false;
@@ -1320,6 +1493,7 @@ function sessionEnded() {
     el.focusMin.disabled = false;
     el.breakMin.disabled = false;
   } else {
+    sendNotification('Sessão completa', 'Bom trabalho. Hora do descanso.');
     incrementSessionsToday();
     state.isBreak = true;
     state.remainingSec = state.breakMin*60;
@@ -1396,28 +1570,49 @@ function playDefaultSound(isAlarm) {
   try {
     state.currentAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const ctx = state.currentAudioCtx;
-    const notes = [329.63, 392.00, 493.88];
-    const intervalSec = 1.8;
-    const noteDuration = 1.4;
+    // Notas uma oitava mais grave: E3, G3, B3 + um drone B2 embaixo pra peso
+    // Som final: sino tibetano/meditação, não ringtone
+    const notes = [164.81, 196.00, 246.94]; // E3, G3, B3
+    const droneFreq = 123.47; // B2 — fundamental grave
+    const intervalSec = 2.4;   // mais espaço entre acordes (menos urgência)
+    const noteDuration = 2.2;  // notas mais longas, sustentadas
+
     function playChord(t) {
+      // Drone grave que sustenta o acorde
+      const droneOsc = ctx.createOscillator();
+      const droneGain = ctx.createGain();
+      droneOsc.type = 'sine';
+      droneOsc.frequency.value = droneFreq;
+      droneOsc.connect(droneGain);
+      droneGain.connect(ctx.destination);
+      droneGain.gain.setValueAtTime(0, t);
+      droneGain.gain.linearRampToValueAtTime(0.08, t + 0.5); // ataque LENTO
+      droneGain.gain.exponentialRampToValueAtTime(0.001, t + noteDuration);
+      droneOsc.start(t);
+      droneOsc.stop(t + noteDuration);
+
+      // Notas do acorde, com arpejo lento
       notes.forEach((freq, i) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.type = 'sine'; osc.frequency.value = freq;
-        osc.connect(gain); gain.connect(ctx.destination);
-        const t0 = t + i*0.08;
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        const t0 = t + i * 0.18; // arpejo mais espaçado (era 0.08)
         gain.gain.setValueAtTime(0, t0);
-        gain.gain.linearRampToValueAtTime(0.18, t0+0.2);
-        gain.gain.exponentialRampToValueAtTime(0.001, t0+noteDuration);
-        osc.start(t0); osc.stop(t0+noteDuration);
+        gain.gain.linearRampToValueAtTime(0.13, t0 + 0.4); // ataque LENTO (era 0.2)
+        gain.gain.exponentialRampToValueAtTime(0.001, t0 + noteDuration - 0.2);
+        osc.start(t0);
+        osc.stop(t0 + noteDuration);
       });
     }
     if (isAlarm) {
       function scheduleBatch() {
         if (!state.currentAudioCtx) return;
         const now = state.currentAudioCtx.currentTime;
-        for (let r=0; r<8; r++) playChord(now + r*intervalSec);
-        const t = setTimeout(scheduleBatch, 6*intervalSec*1000);
+        for (let r=0; r<6; r++) playChord(now + r*intervalSec);
+        const t = setTimeout(scheduleBatch, 4*intervalSec*1000);
         state.currentTimers.push(t);
       }
       scheduleBatch();
@@ -1747,33 +1942,85 @@ function addQuote() {
 }
 
 // =========== DESAFIO MATEMÁTICO ===========
+// Cada questão tem dificuldade: 'facil', 'medio', 'dificil'
 const QUESTIONS = [
-  { q: "\\frac{d}{dx}\\left[ x^3 + 2x \\right]", correct: "3x^2 + 2", wrong: ["3x^2 + 2x", "x^2 + 2", "3x^3 + 2"] },
-  { q: "\\frac{d}{dx}\\left[ 3x^2 + 5x - 7 \\right]", correct: "6x + 5", wrong: ["6x + 5x", "3x + 5", "6x^2 + 5"] },
-  { q: "\\frac{d}{dx}\\left[ \\sin(2x) \\right]", correct: "2\\cos(2x)", wrong: ["\\cos(2x)", "-2\\cos(2x)", "2\\sin(2x)"] },
-  { q: "\\frac{d}{dx}\\left[ \\cos(x^2) \\right]", correct: "-2x\\sin(x^2)", wrong: ["2x\\sin(x^2)", "-\\sin(x^2)", "-2x\\cos(x^2)"] },
-  { q: "\\frac{d}{dx}\\left[ e^{3x} \\right]", correct: "3e^{3x}", wrong: ["e^{3x}", "3xe^{3x}", "\\frac{e^{3x}}{3}"] },
-  { q: "\\frac{d}{dx}\\left[ \\ln(x^2+1) \\right]", correct: "\\frac{2x}{x^2+1}", wrong: ["\\frac{1}{x^2+1}", "2x", "\\frac{2}{x^2+1}"] },
-  { q: "\\frac{d}{dx}\\left[ (x+1)^5 \\right]", correct: "5(x+1)^4", wrong: ["(x+1)^4", "5(x+1)^5", "5x^4"] },
-  { q: "\\frac{d}{dx}\\left[ \\dfrac{x}{x+1} \\right]", correct: "\\dfrac{1}{(x+1)^2}", wrong: ["\\dfrac{1}{x+1}", "-\\dfrac{1}{(x+1)^2}", "\\dfrac{x}{(x+1)^2}"] },
-  { q: "\\frac{d}{dx}\\left[ \\dfrac{2x+1}{x} \\right]", correct: "-\\dfrac{1}{x^2}", wrong: ["\\dfrac{1}{x^2}", "\\dfrac{2}{x}", "\\dfrac{2x-1}{x^2}"] },
-  { q: "\\frac{d}{dx}\\left[ \\dfrac{\\sin(x)}{x} \\right]", correct: "\\dfrac{x\\cos(x) - \\sin(x)}{x^2}", wrong: ["\\dfrac{\\cos(x)}{x}", "\\dfrac{\\cos(x) - \\sin(x)}{x^2}", "\\dfrac{\\sin(x) - x\\cos(x)}{x^2}"] },
-  { q: "\\frac{d}{dx}\\left[ x^2 \\sin(x) \\right]", correct: "2x\\sin(x) + x^2\\cos(x)", wrong: ["2x\\cos(x)", "x^2\\cos(x)", "2x\\sin(x) - x^2\\cos(x)"] },
-  { q: "\\frac{d}{dx}\\left[ x \\cdot e^x \\right]", correct: "e^x(1 + x)", wrong: ["e^x", "x e^x", "e^x(x - 1)"] },
-  { q: "\\int 2x \\, dx", correct: "x^2 + C", wrong: ["2x^2 + C", "\\frac{x^2}{2} + C", "2 + C"] },
-  { q: "\\int \\cos(x) \\, dx", correct: "\\sin(x) + C", wrong: ["-\\sin(x) + C", "\\cos(x) + C", "-\\cos(x) + C"] },
-  { q: "\\int e^x \\, dx", correct: "e^x + C", wrong: ["xe^x + C", "\\dfrac{e^x}{x} + C", "\\ln(x) + C"] },
-  { q: "\\int \\frac{1}{x} \\, dx", correct: "\\ln|x| + C", wrong: ["\\dfrac{1}{x^2} + C", "-\\dfrac{1}{x^2} + C", "x + C"] },
-  { q: "\\int x^2 \\, dx", correct: "\\dfrac{x^3}{3} + C", wrong: ["2x + C", "x^3 + C", "3x^3 + C"] },
-  { q: "\\int (3x^2 + 4x) \\, dx", correct: "x^3 + 2x^2 + C", wrong: ["6x + 4 + C", "x^3 + 4x^2 + C", "3x^3 + 2x^2 + C"] },
-  { q: "\\int \\sin(2x) \\, dx", correct: "-\\dfrac{\\cos(2x)}{2} + C", wrong: ["\\dfrac{\\cos(2x)}{2} + C", "-2\\cos(2x) + C", "-\\cos(2x) + C"] },
-  { q: "\\int e^{2x} \\, dx", correct: "\\dfrac{e^{2x}}{2} + C", wrong: ["2e^{2x} + C", "e^{2x} + C", "e^x + C"] },
-  { q: "\\int 2x \\cos(x^2) \\, dx", correct: "\\sin(x^2) + C", wrong: ["\\cos(x^2) + C", "-\\sin(x^2) + C", "2\\sin(x^2) + C"] },
-  { q: "\\int (2x+1)(x^2+x)^4 \\, dx", correct: "\\dfrac{(x^2+x)^5}{5} + C", wrong: ["(x^2+x)^5 + C", "5(x^2+x)^5 + C", "\\dfrac{(x^2+x)^4}{4} + C"] },
-  { q: "\\int x \\cdot e^x \\, dx", correct: "e^x(x - 1) + C", wrong: ["x e^x + C", "e^x(x + 1) + C", "\\dfrac{x^2 e^x}{2} + C"] },
-  { q: "\\int x \\cos(x) \\, dx", correct: "x\\sin(x) + \\cos(x) + C", wrong: ["x\\sin(x) - \\cos(x) + C", "\\sin(x) + C", "-x\\sin(x) + \\cos(x) + C"] },
-  { q: "\\int \\ln(x) \\, dx", correct: "x\\ln(x) - x + C", wrong: ["\\dfrac{1}{x} + C", "\\ln(x) + C", "x\\ln(x) + x + C"] },
+  // ========== FÁCIL: derivadas básicas e integrais imediatas ==========
+  { difficulty: 'facil', q: "\\frac{d}{dx}\\left[ x^3 + 2x \\right]", correct: "3x^2 + 2", wrong: ["3x^2 + 2x", "x^2 + 2", "3x^3 + 2"] },
+  { difficulty: 'facil', q: "\\frac{d}{dx}\\left[ 3x^2 + 5x - 7 \\right]", correct: "6x + 5", wrong: ["6x + 5x", "3x + 5", "6x^2 + 5"] },
+  { difficulty: 'facil', q: "\\frac{d}{dx}\\left[ x^5 \\right]", correct: "5x^4", wrong: ["5x^5", "x^4", "4x^5"] },
+  { difficulty: 'facil', q: "\\frac{d}{dx}\\left[ 7x \\right]", correct: "7", wrong: ["7x", "0", "x"] },
+  { difficulty: 'facil', q: "\\frac{d}{dx}\\left[ \\sin(x) \\right]", correct: "\\cos(x)", wrong: ["-\\cos(x)", "-\\sin(x)", "\\sin(x)"] },
+  { difficulty: 'facil', q: "\\frac{d}{dx}\\left[ \\cos(x) \\right]", correct: "-\\sin(x)", wrong: ["\\sin(x)", "-\\cos(x)", "\\cos(x)"] },
+  { difficulty: 'facil', q: "\\frac{d}{dx}\\left[ e^x \\right]", correct: "e^x", wrong: ["xe^{x-1}", "e^{x-1}", "1"] },
+  { difficulty: 'facil', q: "\\frac{d}{dx}\\left[ \\ln(x) \\right]", correct: "\\frac{1}{x}", wrong: ["\\ln(x)", "x", "\\frac{1}{x^2}"] },
+  { difficulty: 'facil', q: "\\frac{d}{dx}\\left[ \\sqrt{x} \\right]", correct: "\\frac{1}{2\\sqrt{x}}", wrong: ["\\frac{1}{\\sqrt{x}}", "\\frac{1}{2x}", "2\\sqrt{x}"] },
+  { difficulty: 'facil', q: "\\frac{d}{dx}\\left[ \\tan(x) \\right]", correct: "\\sec^2(x)", wrong: ["\\sec(x)", "-\\sec^2(x)", "\\cot(x)"] },
+  { difficulty: 'facil', q: "\\int 2x \\, dx", correct: "x^2 + C", wrong: ["2x^2 + C", "\\frac{x^2}{2} + C", "2 + C"] },
+  { difficulty: 'facil', q: "\\int \\cos(x) \\, dx", correct: "\\sin(x) + C", wrong: ["-\\sin(x) + C", "\\cos(x) + C", "-\\cos(x) + C"] },
+  { difficulty: 'facil', q: "\\int e^x \\, dx", correct: "e^x + C", wrong: ["xe^x + C", "\\dfrac{e^x}{x} + C", "\\ln(x) + C"] },
+  { difficulty: 'facil', q: "\\int \\frac{1}{x} \\, dx", correct: "\\ln|x| + C", wrong: ["\\dfrac{1}{x^2} + C", "-\\dfrac{1}{x^2} + C", "x + C"] },
+  { difficulty: 'facil', q: "\\int x^2 \\, dx", correct: "\\dfrac{x^3}{3} + C", wrong: ["2x + C", "x^3 + C", "3x^3 + C"] },
+  { difficulty: 'facil', q: "\\int (3x^2 + 4x) \\, dx", correct: "x^3 + 2x^2 + C", wrong: ["6x + 4 + C", "x^3 + 4x^2 + C", "3x^3 + 2x^2 + C"] },
+  { difficulty: 'facil', q: "\\int 5 \\, dx", correct: "5x + C", wrong: ["5 + C", "0 + C", "\\dfrac{5x^2}{2} + C"] },
+  { difficulty: 'facil', q: "\\int \\sin(x) \\, dx", correct: "-\\cos(x) + C", wrong: ["\\cos(x) + C", "\\sin(x) + C", "-\\sin(x) + C"] },
+  { difficulty: 'facil', q: "\\int x^3 \\, dx", correct: "\\dfrac{x^4}{4} + C", wrong: ["3x^2 + C", "x^4 + C", "\\dfrac{x^4}{3} + C"] },
+  { difficulty: 'facil', q: "\\frac{d}{dx}\\left[ x^2 + 3x + 5 \\right]", correct: "2x + 3", wrong: ["2x + 3 + 5", "x + 3", "2x^2 + 3"] },
+
+  // ========== MÉDIO: regra da cadeia, produto, quociente ==========
+  { difficulty: 'medio', q: "\\frac{d}{dx}\\left[ \\sin(2x) \\right]", correct: "2\\cos(2x)", wrong: ["\\cos(2x)", "-2\\cos(2x)", "2\\sin(2x)"] },
+  { difficulty: 'medio', q: "\\frac{d}{dx}\\left[ \\cos(x^2) \\right]", correct: "-2x\\sin(x^2)", wrong: ["2x\\sin(x^2)", "-\\sin(x^2)", "-2x\\cos(x^2)"] },
+  { difficulty: 'medio', q: "\\frac{d}{dx}\\left[ e^{3x} \\right]", correct: "3e^{3x}", wrong: ["e^{3x}", "3xe^{3x}", "\\frac{e^{3x}}{3}"] },
+  { difficulty: 'medio', q: "\\frac{d}{dx}\\left[ \\ln(x^2+1) \\right]", correct: "\\frac{2x}{x^2+1}", wrong: ["\\frac{1}{x^2+1}", "2x", "\\frac{2}{x^2+1}"] },
+  { difficulty: 'medio', q: "\\frac{d}{dx}\\left[ (x+1)^5 \\right]", correct: "5(x+1)^4", wrong: ["(x+1)^4", "5(x+1)^5", "5x^4"] },
+  { difficulty: 'medio', q: "\\frac{d}{dx}\\left[ \\dfrac{x}{x+1} \\right]", correct: "\\dfrac{1}{(x+1)^2}", wrong: ["\\dfrac{1}{x+1}", "-\\dfrac{1}{(x+1)^2}", "\\dfrac{x}{(x+1)^2}"] },
+  { difficulty: 'medio', q: "\\frac{d}{dx}\\left[ \\dfrac{2x+1}{x} \\right]", correct: "-\\dfrac{1}{x^2}", wrong: ["\\dfrac{1}{x^2}", "\\dfrac{2}{x}", "\\dfrac{2x-1}{x^2}"] },
+  { difficulty: 'medio', q: "\\frac{d}{dx}\\left[ x^2 \\sin(x) \\right]", correct: "2x\\sin(x) + x^2\\cos(x)", wrong: ["2x\\cos(x)", "x^2\\cos(x)", "2x\\sin(x) - x^2\\cos(x)"] },
+  { difficulty: 'medio', q: "\\frac{d}{dx}\\left[ x \\cdot e^x \\right]", correct: "e^x(1 + x)", wrong: ["e^x", "x e^x", "e^x(x - 1)"] },
+  { difficulty: 'medio', q: "\\frac{d}{dx}\\left[ \\sqrt{x^2+1} \\right]", correct: "\\dfrac{x}{\\sqrt{x^2+1}}", wrong: ["\\dfrac{1}{2\\sqrt{x^2+1}}", "\\dfrac{2x}{\\sqrt{x^2+1}}", "\\dfrac{x}{2\\sqrt{x^2+1}}"] },
+  { difficulty: 'medio', q: "\\frac{d}{dx}\\left[ \\sin^2(x) \\right]", correct: "2\\sin(x)\\cos(x)", wrong: ["2\\sin(x)", "\\cos^2(x)", "-2\\sin(x)\\cos(x)"] },
+  { difficulty: 'medio', q: "\\frac{d}{dx}\\left[ e^{x^2} \\right]", correct: "2x e^{x^2}", wrong: ["e^{x^2}", "2x e^{2x}", "x^2 e^{x^2}"] },
+  { difficulty: 'medio', q: "\\frac{d}{dx}\\left[ \\ln(\\sin(x)) \\right]", correct: "\\cot(x)", wrong: ["\\dfrac{1}{\\sin(x)}", "\\tan(x)", "-\\cot(x)"] },
+  { difficulty: 'medio', q: "\\int \\sin(2x) \\, dx", correct: "-\\dfrac{\\cos(2x)}{2} + C", wrong: ["\\dfrac{\\cos(2x)}{2} + C", "-2\\cos(2x) + C", "-\\cos(2x) + C"] },
+  { difficulty: 'medio', q: "\\int e^{2x} \\, dx", correct: "\\dfrac{e^{2x}}{2} + C", wrong: ["2e^{2x} + C", "e^{2x} + C", "e^x + C"] },
+  { difficulty: 'medio', q: "\\int 2x \\cos(x^2) \\, dx", correct: "\\sin(x^2) + C", wrong: ["\\cos(x^2) + C", "-\\sin(x^2) + C", "2\\sin(x^2) + C"] },
+  { difficulty: 'medio', q: "\\int (2x+1)(x^2+x)^4 \\, dx", correct: "\\dfrac{(x^2+x)^5}{5} + C", wrong: ["(x^2+x)^5 + C", "5(x^2+x)^5 + C", "\\dfrac{(x^2+x)^4}{4} + C"] },
+  { difficulty: 'medio', q: "\\int \\dfrac{1}{1+x^2} \\, dx", correct: "\\arctan(x) + C", wrong: ["\\ln(1+x^2) + C", "\\dfrac{1}{2x} + C", "\\dfrac{x}{1+x^2} + C"] },
+  { difficulty: 'medio', q: "\\int \\dfrac{1}{\\sqrt{1-x^2}} \\, dx", correct: "\\arcsin(x) + C", wrong: ["\\arccos(x) + C", "\\arctan(x) + C", "\\sqrt{1-x^2} + C"] },
+  { difficulty: 'medio', q: "\\int 3x^2 \\sqrt{x^3+1} \\, dx", correct: "\\dfrac{2(x^3+1)^{3/2}}{3} + C", wrong: ["(x^3+1)^{3/2} + C", "\\dfrac{(x^3+1)^{3/2}}{3} + C", "\\dfrac{3(x^3+1)^{3/2}}{2} + C"] },
+  { difficulty: 'medio', q: "\\int \\tan(x) \\, dx", correct: "-\\ln|\\cos(x)| + C", wrong: ["\\ln|\\cos(x)| + C", "\\sec^2(x) + C", "\\sec(x) + C"] },
+  { difficulty: 'medio', q: "\\int x \\sin(x^2) \\, dx", correct: "-\\dfrac{\\cos(x^2)}{2} + C", wrong: ["\\dfrac{\\cos(x^2)}{2} + C", "-\\cos(x^2) + C", "x\\cos(x^2) + C"] },
+  { difficulty: 'medio', q: "\\frac{d}{dx}\\left[ \\dfrac{\\sin(x)}{x} \\right]", correct: "\\dfrac{x\\cos(x) - \\sin(x)}{x^2}", wrong: ["\\dfrac{\\cos(x)}{x}", "\\dfrac{\\cos(x) - \\sin(x)}{x^2}", "\\dfrac{\\sin(x) - x\\cos(x)}{x^2}"] },
+
+  // ========== DIFÍCIL: integração por partes, substituições mais cabeludas, limites ==========
+  { difficulty: 'dificil', q: "\\int x \\cdot e^x \\, dx", correct: "e^x(x - 1) + C", wrong: ["x e^x + C", "e^x(x + 1) + C", "\\dfrac{x^2 e^x}{2} + C"] },
+  { difficulty: 'dificil', q: "\\int x \\cos(x) \\, dx", correct: "x\\sin(x) + \\cos(x) + C", wrong: ["x\\sin(x) - \\cos(x) + C", "\\sin(x) + C", "-x\\sin(x) + \\cos(x) + C"] },
+  { difficulty: 'dificil', q: "\\int \\ln(x) \\, dx", correct: "x\\ln(x) - x + C", wrong: ["\\dfrac{1}{x} + C", "\\ln(x) + C", "x\\ln(x) + x + C"] },
+  { difficulty: 'dificil', q: "\\int x^2 e^x \\, dx", correct: "e^x(x^2 - 2x + 2) + C", wrong: ["e^x(x^2 + 2x + 2) + C", "x^2 e^x + C", "\\dfrac{x^3 e^x}{3} + C"] },
+  { difficulty: 'dificil', q: "\\int x \\ln(x) \\, dx", correct: "\\dfrac{x^2}{2}\\ln(x) - \\dfrac{x^2}{4} + C", wrong: ["\\dfrac{x^2 \\ln(x)}{2} + C", "x\\ln(x) - x + C", "\\dfrac{x^2}{2}\\ln(x) + \\dfrac{x^2}{4} + C"] },
+  { difficulty: 'dificil', q: "\\int e^x \\sin(x) \\, dx", correct: "\\dfrac{e^x(\\sin(x) - \\cos(x))}{2} + C", wrong: ["e^x \\sin(x) + C", "\\dfrac{e^x(\\sin(x) + \\cos(x))}{2} + C", "-e^x \\cos(x) + C"] },
+  { difficulty: 'dificil', q: "\\int \\sec^3(x) \\, dx", correct: "\\dfrac{\\sec(x)\\tan(x) + \\ln|\\sec(x)+\\tan(x)|}{2} + C", wrong: ["\\dfrac{\\sec^4(x)}{4} + C", "\\sec(x)\\tan(x) + C", "\\dfrac{\\tan(x)}{3} + C"] },
+  { difficulty: 'dificil', q: "\\int \\dfrac{1}{x^2+4} \\, dx", correct: "\\dfrac{1}{2}\\arctan\\left(\\dfrac{x}{2}\\right) + C", wrong: ["\\arctan(x) + C", "\\dfrac{1}{4}\\arctan(x) + C", "\\dfrac{1}{2}\\arctan(x) + C"] },
+  { difficulty: 'dificil', q: "\\int \\dfrac{2x}{x^2-1} \\, dx", correct: "\\ln|x^2-1| + C", wrong: ["\\ln(x^2-1) + C", "\\dfrac{1}{x^2-1} + C", "2\\ln|x-1| + C"] },
+  { difficulty: 'dificil', q: "\\lim_{x \\to 0} \\dfrac{\\sin(x)}{x}", correct: "1", wrong: ["0", "\\infty", "\\text{não existe}"] },
+  { difficulty: 'dificil', q: "\\lim_{x \\to 0} \\dfrac{1-\\cos(x)}{x^2}", correct: "\\dfrac{1}{2}", wrong: ["0", "1", "\\infty"] },
+  { difficulty: 'dificil', q: "\\lim_{x \\to \\infty} \\left(1 + \\dfrac{1}{x}\\right)^x", correct: "e", wrong: ["1", "\\infty", "0"] },
+  { difficulty: 'dificil', q: "\\lim_{x \\to 0} \\dfrac{e^x - 1}{x}", correct: "1", wrong: ["0", "e", "\\infty"] },
+  { difficulty: 'dificil', q: "\\frac{d^2}{dx^2}\\left[ \\sin(x) \\right]", correct: "-\\sin(x)", wrong: ["-\\cos(x)", "\\cos(x)", "\\sin(x)"] },
+  { difficulty: 'dificil', q: "\\int_0^1 x^2 \\, dx", correct: "\\dfrac{1}{3}", wrong: ["1", "\\dfrac{2}{3}", "\\dfrac{1}{2}"] },
+  { difficulty: 'dificil', q: "\\int_0^{\\pi} \\sin(x) \\, dx", correct: "2", wrong: ["0", "1", "\\pi"] },
+  { difficulty: 'dificil', q: "\\frac{d}{dx}\\left[ \\arctan(x) \\right]", correct: "\\dfrac{1}{1+x^2}", wrong: ["\\dfrac{1}{1-x^2}", "\\dfrac{1}{\\sqrt{1+x^2}}", "1+x^2"] },
+  { difficulty: 'dificil', q: "\\frac{d}{dx}\\left[ x^x \\right]", correct: "x^x(\\ln(x) + 1)", wrong: ["x \\cdot x^{x-1}", "x^x \\ln(x)", "x^{x-1}"] },
 ];
+
+// Filtra questões pela dificuldade configurada (ou todas se 'tudo')
+function getQuestionsForLevel() {
+  const level = state.mathDifficulty || 'medio';
+  if (level === 'tudo') return QUESTIONS;
+  if (level === 'facil') return QUESTIONS.filter(q => q.difficulty === 'facil');
+  if (level === 'medio') return QUESTIONS.filter(q => q.difficulty === 'facil' || q.difficulty === 'medio');
+  if (level === 'dificil') return QUESTIONS.filter(q => q.difficulty === 'medio' || q.difficulty === 'dificil');
+  return QUESTIONS;
+}
 function shuffleArray(arr) {
   const a = [...arr];
   for (let i=a.length-1; i>0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; }
@@ -1795,7 +2042,8 @@ function showMathChallenge() {
   el.feedback.className = 'modal-feedback';
 }
 function loadNewQuestion() {
-  const q = QUESTIONS[Math.floor(Math.random()*QUESTIONS.length)];
+  const pool = getQuestionsForLevel();
+  const q = pool[Math.floor(Math.random()*pool.length)];
   state.currentQuestion = q;
   renderMath(el.question, q.q, true);
   const allOptions = shuffleArray([q.correct, ...q.wrong]);
@@ -1830,6 +2078,122 @@ function closeModal() {
   // Voltou pro foco em vez de desistir = vitória
   el.modal.classList.remove('show');
   recordWin();
+}
+
+// =========== PREFERÊNCIAS ===========
+function savePreferences() {
+  saveToStorage(STORAGE.PREFERENCES, {
+    mathDifficulty: state.mathDifficulty,
+    deepWorkMode: state.deepWorkMode,
+    notificationsEnabled: state.notificationsEnabled,
+  });
+}
+function loadPreferences() {
+  const prefs = loadFromStorage(STORAGE.PREFERENCES, {});
+  state.mathDifficulty = prefs.mathDifficulty || 'medio';
+  state.deepWorkMode = !!prefs.deepWorkMode;
+  state.notificationsEnabled = !!prefs.notificationsEnabled;
+  el.mathDifficultySelect.value = state.mathDifficulty;
+  el.deepWorkToggle.checked = state.deepWorkMode;
+  el.notificationsToggle.checked = state.notificationsEnabled;
+}
+
+// =========== NOTIFICAÇÕES ===========
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) {
+    alert('Seu navegador não suporta notificações.');
+    el.notificationsToggle.checked = false;
+    state.notificationsEnabled = false;
+    savePreferences();
+    return;
+  }
+  if (Notification.permission === 'granted') return;
+  if (Notification.permission === 'denied') {
+    alert('Notificações foram bloqueadas. Habilite manualmente nas configurações do navegador.');
+    el.notificationsToggle.checked = false;
+    state.notificationsEnabled = false;
+    savePreferences();
+    return;
+  }
+  const result = await Notification.requestPermission();
+  if (result !== 'granted') {
+    el.notificationsToggle.checked = false;
+    state.notificationsEnabled = false;
+    savePreferences();
+  }
+}
+function sendNotification(title, body) {
+  if (!state.notificationsEnabled) return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    new Notification(title, {
+      body,
+      icon: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%23d4a574"/></svg>',
+      silent: false,
+    });
+  } catch(e) {}
+}
+
+// =========== EXPORTAR / IMPORTAR ===========
+function exportData() {
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    config: loadFromStorage(STORAGE.CONFIG, null),
+    tasks: loadFromStorage(STORAGE.TASKS, {}),
+    sessionsToday: loadFromStorage(STORAGE.SESSIONS_TODAY, null),
+    promises: loadFromStorage(STORAGE.PROMISES, {}),
+    userQuotes: loadFromStorage(STORAGE.USER_QUOTES, []),
+    audits: loadFromStorage(STORAGE.AUDITS, {}),
+    weekStats: loadFromStorage(STORAGE.WEEK_STATS, null),
+    preferences: loadFromStorage(STORAGE.PREFERENCES, null),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = todayKey();
+  a.href = url;
+  a.download = `kairos-backup-${dateStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function handleImportFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const data = JSON.parse(event.target.result);
+      if (!data || !data.version) {
+        alert('Arquivo de backup inválido.');
+        return;
+      }
+      const confirmed = confirm(
+        'Importar vai SUBSTITUIR todos os dados atuais.\n\nTem certeza? Recomendo exportar antes pra ter backup.'
+      );
+      if (!confirmed) {
+        el.importFileInput.value = '';
+        return;
+      }
+      // Substitui tudo
+      if (data.config) saveToStorage(STORAGE.CONFIG, data.config);
+      if (data.tasks) saveToStorage(STORAGE.TASKS, data.tasks);
+      if (data.sessionsToday) saveToStorage(STORAGE.SESSIONS_TODAY, data.sessionsToday);
+      if (data.promises) saveToStorage(STORAGE.PROMISES, data.promises);
+      if (data.userQuotes) saveToStorage(STORAGE.USER_QUOTES, data.userQuotes);
+      if (data.audits) saveToStorage(STORAGE.AUDITS, data.audits);
+      if (data.weekStats) saveToStorage(STORAGE.WEEK_STATS, data.weekStats);
+      if (data.preferences) saveToStorage(STORAGE.PREFERENCES, data.preferences);
+      alert('Dados importados com sucesso. A página vai recarregar.');
+      location.reload();
+    } catch(err) {
+      alert('Erro ao ler o arquivo: ' + err.message);
+    }
+    el.importFileInput.value = '';
+  };
+  reader.readAsText(file);
 }
 
 // =========== EVENTOS ===========
@@ -1893,6 +2257,48 @@ el.quotesModal.addEventListener('click', (e) => {
   if (e.target === el.quotesModal) el.quotesModal.classList.remove('show');
 });
 
+// Preferências
+el.mathDifficultySelect.addEventListener('change', () => {
+  state.mathDifficulty = el.mathDifficultySelect.value;
+  savePreferences();
+});
+el.deepWorkToggle.addEventListener('change', () => {
+  state.deepWorkMode = el.deepWorkToggle.checked;
+  savePreferences();
+  updateStatus(); // aplica imediatamente se já tiver rodando
+});
+el.notificationsToggle.addEventListener('change', async () => {
+  state.notificationsEnabled = el.notificationsToggle.checked;
+  savePreferences();
+  if (state.notificationsEnabled) {
+    await requestNotificationPermission();
+  }
+});
+el.exportBtn.addEventListener('click', exportData);
+el.importBtn.addEventListener('click', () => el.importFileInput.click());
+el.importFileInput.addEventListener('change', handleImportFile);
+
+// Atalhos de teclado
+document.addEventListener('keydown', (e) => {
+  // Não interfere se o usuário tá digitando em algum input/textarea
+  const target = e.target;
+  const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT';
+  if (isTyping) return;
+  // Não interfere se algum modal tá aberto
+  const anyModalOpen = document.querySelector('.modal-overlay.show');
+  if (anyModalOpen) return;
+
+  // Espaço: iniciar/parar timer
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (!state.isRunning) {
+      startTimer();
+    } else {
+      stopTimer();
+    }
+  }
+});
+
 // =========== INIT ===========
 function init() {
   // Config
@@ -1920,6 +2326,9 @@ function init() {
 
   // Frases do usuário
   state.userQuotes = loadFromStorage(STORAGE.USER_QUOTES, []);
+
+  // Preferências
+  loadPreferences();
 
   // Promessa de hoje
   state.todayPromise = getTodayPromise();
