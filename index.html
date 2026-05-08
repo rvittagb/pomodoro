@@ -719,7 +719,7 @@
 
   <main class="main">
     <div class="promise-banner" id="promiseBanner" style="display:none;">
-      <div class="label">Promessa de hoje</div>
+      <div class="label">Frase do dia</div>
       <div class="text" id="promiseBannerText"></div>
     </div>
 
@@ -754,14 +754,12 @@
   </div>
 </div>
 
-<!-- MODAL: Promessa do Dia -->
+<!-- MODAL: Frase do Dia -->
 <div class="modal-overlay" id="promiseModal">
   <div class="modal">
     <div class="promise-quote" id="promiseQuote"></div>
     <div class="promise-quote-author" id="promiseQuoteAuthor"></div>
-    <div class="promise-question">O que faria desse dia um sucesso, mesmo que tudo desse errado?</div>
-    <textarea class="promise-input" id="promiseInput" placeholder="Escreve uma frase. Uma só." maxlength="200"></textarea>
-    <button class="modal-btn-primary" id="commitPromiseBtn" disabled>Comprometer</button>
+    <button class="modal-btn-primary" id="commitPromiseBtn">Me comprometo</button>
   </div>
 </div>
 
@@ -770,17 +768,6 @@
   <div class="modal">
     <div class="modal-title" id="auditTitle">Ontem</div>
     <div class="modal-subtitle">Sem julgamento. Só verdade.</div>
-
-    <div id="auditPromiseSection" style="display:none;">
-      <div class="audit-promise-check">
-        <div class="audit-promise-text" id="auditPromiseText">"..."</div>
-        <div style="font-size: 12px; color: var(--text-faint); margin-bottom: 10px;">Cumpriu?</div>
-        <div class="audit-promise-buttons">
-          <button class="audit-promise-btn" data-answer="yes">Sim</button>
-          <button class="audit-promise-btn" data-answer="no">Não</button>
-        </div>
-      </div>
-    </div>
 
     <div id="auditTasksSection" style="display:none;">
       <div style="font-size: 12px; color: var(--text-faint); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.1em;">Tarefas que você programou</div>
@@ -811,7 +798,7 @@ const STORAGE = {
   TASKS: 'foco.tasks',
   CONFIG: 'foco.config',
   SESSIONS_TODAY: 'foco.sessionsToday',
-  PROMISES: 'foco.promises',         // { "YYYY-MM-DD": { text, fulfilled: null|true|false } }
+  PROMISES: 'foco.promises',         // { "YYYY-MM-DD": { text, committed: true } }
   USER_QUOTES: 'foco.userQuotes',    // ["frase 1", "frase 2"]
   AUDITS: 'foco.audits',             // { "YYYY-MM-DD": { tasks: {taskId: status}, promiseFulfilled: bool } }
   LAST_OPEN_DATE: 'foco.lastOpenDate',
@@ -931,8 +918,9 @@ const state = {
   currentTimers: [],
   isAlarmMode: false,
 
-  // Promessa do dia
-  todayPromise: null,    // { text, fulfilled }
+  // Compromisso do dia (frase + flag)
+  todayPromise: null,    // { text, committed }
+  pendingQuote: null,    // frase aguardando confirmação no modal
 
   // Stats da semana (vitórias contra desistir + rendições)
   weekStats: { weekKey: '', wins: 0, losses: 0 },
@@ -941,7 +929,7 @@ const state = {
   userQuotes: [],
 
   // Auditoria
-  auditAnswers: { promiseFulfilled: null, tasks: {} },
+  auditAnswers: { tasks: {} },
 };
 
 const el = {
@@ -982,12 +970,9 @@ const el = {
   promiseModal: document.getElementById('promiseModal'),
   promiseQuote: document.getElementById('promiseQuote'),
   promiseQuoteAuthor: document.getElementById('promiseQuoteAuthor'),
-  promiseInput: document.getElementById('promiseInput'),
   commitPromiseBtn: document.getElementById('commitPromiseBtn'),
   auditModal: document.getElementById('auditModal'),
   auditTitle: document.getElementById('auditTitle'),
-  auditPromiseSection: document.getElementById('auditPromiseSection'),
-  auditPromiseText: document.getElementById('auditPromiseText'),
   auditTasksSection: document.getElementById('auditTasksSection'),
   auditTaskList: document.getElementById('auditTaskList'),
   finishAuditBtn: document.getElementById('finishAuditBtn'),
@@ -1387,7 +1372,7 @@ function goToToday() {
   renderDayNav(); renderTasks(); renderDaySummary();
 }
 
-// =========== PROMESSA DO DIA ===========
+// =========== FRASE DO DIA + COMPROMISSO ===========
 function getAllQuotes() {
   return [
     ...DEFAULT_QUOTES.map(t => ({ text: t, source: 'foco.' })),
@@ -1398,35 +1383,34 @@ function getTodayPromise() {
   const promises = loadFromStorage(STORAGE.PROMISES, {});
   return promises[todayKey()] || null;
 }
-function saveTodayPromise(text) {
+function saveTodayPromise(quoteText) {
+  // Salva a frase do dia + flag de compromisso assumido
   const promises = loadFromStorage(STORAGE.PROMISES, {});
-  promises[todayKey()] = { text, fulfilled: null };
+  promises[todayKey()] = { text: quoteText, committed: true };
   saveToStorage(STORAGE.PROMISES, promises);
   state.todayPromise = promises[todayKey()];
 }
-function setPromiseFulfilled(dateKey, fulfilled) {
-  const promises = loadFromStorage(STORAGE.PROMISES, {});
-  if (promises[dateKey]) {
-    promises[dateKey].fulfilled = fulfilled;
-    saveToStorage(STORAGE.PROMISES, promises);
+function getOrPickTodayQuote() {
+  // Se já comprometeu hoje, usa a frase já salva.
+  // Senão, pega a do dia (rotação determinística).
+  if (state.todayPromise && state.todayPromise.text) {
+    return { text: state.todayPromise.text, source: '' };
   }
+  const allQuotes = getAllQuotes();
+  return getQuoteOfTheDay(allQuotes, todayKey());
 }
 function showPromiseModal() {
-  const allQuotes = getAllQuotes();
-  const quote = getQuoteOfTheDay(allQuotes, todayKey());
-  if (quote) {
-    el.promiseQuote.textContent = `"${quote.text}"`;
-    el.promiseQuoteAuthor.textContent = `— ${quote.source}`;
-  }
-  el.promiseInput.value = '';
-  el.commitPromiseBtn.disabled = true;
+  const quote = getOrPickTodayQuote();
+  if (!quote || !quote.text) return;
+  state.pendingQuote = quote.text; // pra salvar quando clicar comprometer
+  el.promiseQuote.textContent = `"${quote.text}"`;
+  el.promiseQuoteAuthor.textContent = quote.source ? `— ${quote.source}` : '';
   el.promiseModal.classList.add('show');
-  setTimeout(() => el.promiseInput.focus(), 200);
 }
 function commitPromise() {
-  const text = el.promiseInput.value.trim();
-  if (!text) return;
-  saveTodayPromise(text);
+  if (!state.pendingQuote) return;
+  saveTodayPromise(state.pendingQuote);
+  state.pendingQuote = null;
   el.promiseModal.classList.remove('show');
   renderPromiseBanner();
 }
@@ -1442,92 +1426,62 @@ function renderPromiseBanner() {
 // =========== AUDITORIA DO DIA ANTERIOR ===========
 function getYesterdayDataForAudit() {
   const yesterday = shiftDateKey(todayKey(), -1);
-  const promises = loadFromStorage(STORAGE.PROMISES, {});
   const audits = loadFromStorage(STORAGE.AUDITS, {});
 
-  const promise = promises[yesterday];
   const tasks = state.tasksByDay[yesterday] || [];
   const alreadyAudited = audits[yesterday];
 
-  // Se nem teve promessa nem teve tarefas, não audita
-  if (!promise && tasks.length === 0) return null;
-  // Se já auditou, não audita de novo
+  // Sem tarefas ontem = não tem o que auditar
+  if (tasks.length === 0) return null;
+  // Já auditou = não pergunta de novo
   if (alreadyAudited) return null;
 
-  return { date: yesterday, promise, tasks };
+  return { date: yesterday, tasks };
 }
 function showAuditModal(data) {
-  state.auditAnswers = { promiseFulfilled: null, tasks: {} };
+  state.auditAnswers = { tasks: {} };
   el.auditTitle.textContent = `Sobre ontem (${formatDayLabel(data.date).date})`;
 
-  // Promessa
-  if (data.promise && data.promise.text) {
-    el.auditPromiseText.textContent = `"${data.promise.text}"`;
-    el.auditPromiseSection.style.display = 'block';
-    document.querySelectorAll('.audit-promise-btn').forEach(btn => {
-      btn.classList.remove('selected', 'yes', 'no');
+  // Tarefas
+  el.auditTasksSection.style.display = 'block';
+  el.auditTaskList.innerHTML = '';
+  data.tasks.forEach(task => {
+    const div = document.createElement('div');
+    div.className = 'audit-task';
+    const timeBadge = task.time ? `<span class="time-badge">${task.time}</span>` : '';
+    div.innerHTML = `
+      <div class="audit-task-text">${timeBadge}${escapeHtml(task.text)}</div>
+      <div class="audit-options">
+        <button class="audit-option" data-status="full"><span class="audit-option-icon">✓</span>Fiz tudo</button>
+        <button class="audit-option" data-status="partial"><span class="audit-option-icon">◐</span>Parcial</button>
+        <button class="audit-option" data-status="none"><span class="audit-option-icon">✗</span>Não fiz</button>
+        <button class="audit-option" data-status="other"><span class="audit-option-icon">⤳</span>Outra coisa</button>
+      </div>
+    `;
+    div.querySelectorAll('.audit-option').forEach(btn => {
       btn.onclick = () => {
-        document.querySelectorAll('.audit-promise-btn').forEach(b => b.classList.remove('selected', 'yes', 'no'));
-        const ans = btn.dataset.answer;
-        btn.classList.add('selected', ans === 'yes' ? 'yes' : 'no');
-        state.auditAnswers.promiseFulfilled = ans === 'yes';
+        div.querySelectorAll('.audit-option').forEach(b => b.classList.remove('selected', 'full', 'partial', 'none', 'other'));
+        const status = btn.dataset.status;
+        btn.classList.add('selected', status);
+        state.auditAnswers.tasks[task.id] = status;
       };
     });
-  } else {
-    el.auditPromiseSection.style.display = 'none';
-  }
-
-  // Tarefas
-  if (data.tasks.length > 0) {
-    el.auditTasksSection.style.display = 'block';
-    el.auditTaskList.innerHTML = '';
-    data.tasks.forEach(task => {
-      const div = document.createElement('div');
-      div.className = 'audit-task';
-      const timeBadge = task.time ? `<span class="time-badge">${task.time}</span>` : '';
-      div.innerHTML = `
-        <div class="audit-task-text">${timeBadge}${escapeHtml(task.text)}</div>
-        <div class="audit-options">
-          <button class="audit-option" data-status="full"><span class="audit-option-icon">✓</span>Fiz tudo</button>
-          <button class="audit-option" data-status="partial"><span class="audit-option-icon">◐</span>Parcial</button>
-          <button class="audit-option" data-status="none"><span class="audit-option-icon">✗</span>Não fiz</button>
-          <button class="audit-option" data-status="other"><span class="audit-option-icon">⤳</span>Outra coisa</button>
-        </div>
-      `;
-      div.querySelectorAll('.audit-option').forEach(btn => {
-        btn.onclick = () => {
-          div.querySelectorAll('.audit-option').forEach(b => b.classList.remove('selected', 'full', 'partial', 'none', 'other'));
-          const status = btn.dataset.status;
-          btn.classList.add('selected', status);
-          state.auditAnswers.tasks[task.id] = status;
-        };
-      });
-      el.auditTaskList.appendChild(div);
-    });
-  } else {
-    el.auditTasksSection.style.display = 'none';
-  }
+    el.auditTaskList.appendChild(div);
+  });
 
   el.auditModal.classList.add('show');
 }
 function finishAudit(yesterdayKey) {
-  // Salva audit
   const audits = loadFromStorage(STORAGE.AUDITS, {});
   audits[yesterdayKey] = {
-    promiseFulfilled: state.auditAnswers.promiseFulfilled,
     tasks: state.auditAnswers.tasks,
     auditedAt: new Date().toISOString(),
   };
   saveToStorage(STORAGE.AUDITS, audits);
 
-  // Atualiza promessa de ontem com resposta
-  if (state.auditAnswers.promiseFulfilled !== null) {
-    setPromiseFulfilled(yesterdayKey, state.auditAnswers.promiseFulfilled);
-  }
-
   el.auditModal.classList.remove('show');
 
-  // Depois da auditoria, dispara fluxo da promessa de hoje (se ainda não tem)
+  // Após auditoria, mostra a frase do dia (se ainda não comprometeu)
   if (!state.todayPromise) {
     setTimeout(showPromiseModal, 350);
   }
@@ -1687,16 +1641,9 @@ el.prevDayBtn.addEventListener('click', () => changeDay(-1));
 el.nextDayBtn.addEventListener('click', () => changeDay(1));
 el.todayBtn.addEventListener('click', goToToday);
 
-// Promessa
-el.promiseInput.addEventListener('input', () => {
-  el.commitPromiseBtn.disabled = !el.promiseInput.value.trim();
-});
-el.promiseInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) commitPromise();
-});
+// Compromisso
 el.commitPromiseBtn.addEventListener('click', commitPromise);
 el.promiseBanner.addEventListener('click', () => {
-  // Click no banner mostra a promessa em modal de leitura — pra reforçar
   if (state.todayPromise) {
     alert(`"${state.todayPromise.text}"\n\nLembra disso quando a vontade fraquejar.`);
   }
