@@ -6,8 +6,7 @@
 <title>Foco — Pomodoro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<!-- KaTeX para renderizar matemática bonita -->
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <style>
@@ -47,18 +46,18 @@
 
   .app {
     display: grid;
-    grid-template-columns: 340px 1fr;
+    grid-template-columns: 360px 1fr;
     height: 100vh;
   }
 
   .sidebar {
     background: var(--bg-elevated);
     border-right: 1px solid var(--border);
-    padding: 32px 24px;
+    padding: 28px 22px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 28px;
+    gap: 24px;
   }
 
   .sidebar::-webkit-scrollbar { width: 6px; }
@@ -80,235 +79,215 @@
     color: var(--text-faint);
     margin-bottom: 12px;
     font-weight: 500;
-  }
-
-  .time-config {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .time-input-group label {
-    display: block;
-    font-size: 12px;
-    color: var(--text-dim);
-    margin-bottom: 6px;
-  }
-  .time-input-group input {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 10px 12px;
-    border-radius: 6px;
-    font-family: var(--mono);
-    font-size: 14px;
-    transition: border-color 0.2s;
-  }
-  .time-input-group input:focus {
-    outline: none;
-    border-color: var(--accent);
-  }
-  .time-input-group input:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  .sound-config {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .sound-current {
-    font-size: 13px;
-    color: var(--text-dim);
-    padding: 10px 12px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 8px;
-    overflow: hidden;
   }
-  .sound-current-name {
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .sound-current-name strong { color: var(--text); font-weight: 500; }
-  .sound-remove {
-    background: none;
-    border: none;
+  .section-label-action {
+    font-family: var(--sans);
+    font-size: 10px;
     color: var(--text-faint);
     cursor: pointer;
-    font-size: 16px;
-    padding: 0 4px;
-    flex-shrink: 0;
+    background: none;
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0;
+  }
+  .section-label-action:hover { color: var(--accent); }
+
+  .time-config { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .time-input-group label {
+    display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 6px;
+  }
+  .time-input-group input {
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); padding: 10px 12px; border-radius: 6px;
+    font-family: var(--mono); font-size: 14px; transition: border-color 0.2s;
+  }
+  .time-input-group input:focus { outline: none; border-color: var(--accent); }
+  .time-input-group input:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Som */
+  .sound-config { display: flex; flex-direction: column; gap: 10px; }
+  .sound-current {
+    font-size: 13px; color: var(--text-dim);
+    padding: 10px 12px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 6px;
+    display: flex; align-items: center; gap: 8px; overflow: hidden;
+  }
+  .sound-current-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sound-current-name strong { color: var(--text); font-weight: 500; }
+  .sound-remove {
+    background: none; border: none; color: var(--text-faint);
+    cursor: pointer; font-size: 16px; padding: 0 4px; flex-shrink: 0;
   }
   .sound-remove:hover { color: var(--danger); }
-
-  .sound-actions {
-    display: flex;
-    gap: 8px;
-  }
+  .sound-actions { display: flex; gap: 8px; }
   .sound-btn {
-    flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 9px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 12px;
-    font-family: var(--sans);
+    flex: 1; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); padding: 9px 10px; border-radius: 6px;
+    cursor: pointer; font-size: 12px; font-family: var(--sans);
     transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
   }
-  .sound-btn:hover {
-    border-color: var(--accent);
-    background: var(--bg-hover);
-  }
-  .sound-btn.testing {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
+  .sound-btn:hover { border-color: var(--accent); background: var(--bg-hover); }
+  .sound-btn.testing { border-color: var(--accent); color: var(--accent); }
   #soundFileInput { display: none; }
 
+  /* Calendário */
+  .day-nav { display: flex; align-items: center; gap: 6px; margin-bottom: 16px; }
+  .day-nav-btn {
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    width: 32px; height: 32px; border-radius: 6px; cursor: pointer;
+    font-size: 14px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .day-nav-btn:hover { border-color: var(--accent); background: var(--bg-hover); }
+  .day-nav-current {
+    flex: 1; text-align: center;
+    font-family: var(--serif); font-size: 16px; font-style: italic;
+    color: var(--text); cursor: pointer; user-select: none; line-height: 1.2;
+  }
+  .day-nav-current .day-name { display: block; }
+  .day-nav-current .day-date {
+    display: block; font-family: var(--sans); font-style: normal;
+    font-size: 11px; color: var(--text-faint);
+    letter-spacing: 0.05em; margin-top: 2px;
+  }
+  .day-nav-current.is-today .day-name { color: var(--accent); }
+  .today-btn {
+    background: var(--bg); border: 1px solid var(--border); color: var(--text-dim);
+    padding: 4px 10px; border-radius: 999px; cursor: pointer;
+    font-size: 11px; font-family: var(--sans);
+    margin-left: 6px; flex-shrink: 0; transition: all 0.15s;
+  }
+  .today-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .today-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
   .task-add {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
+    display: grid; grid-template-columns: 1fr 70px 38px;
+    gap: 6px; margin-bottom: 14px;
   }
   .task-add input {
-    flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 10px 12px;
-    border-radius: 6px;
-    font-size: 14px;
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 12px; border-radius: 6px; font-size: 14px; width: 100%;
   }
-  .task-add input:focus {
-    outline: none;
-    border-color: var(--accent);
+  .task-add input:focus { outline: none; border-color: var(--accent); }
+  .task-add input[type="time"] {
+    font-family: var(--mono); font-size: 13px; padding: 10px 8px; color-scheme: dark;
   }
   .task-add button {
-    background: var(--accent);
-    color: var(--bg);
-    border: none;
-    padding: 0 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 18px;
-    transition: opacity 0.2s;
+    background: var(--accent); color: var(--bg); border: none;
+    border-radius: 6px; cursor: pointer; font-weight: 600;
+    font-size: 18px; transition: opacity 0.2s;
   }
   .task-add button:hover { opacity: 0.85; }
 
-  .task-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
+  .task-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
   .task-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.15s;
-    border: 1px solid transparent;
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 6px; cursor: pointer;
+    transition: background 0.15s; border: 1px solid transparent;
   }
   .task-item:hover { background: var(--bg-hover); }
-  .task-item.active {
-    background: var(--accent-soft);
-    border-color: var(--accent);
-  }
-  .task-item.done .task-text {
-    text-decoration: line-through;
-    color: var(--text-faint);
-  }
+  .task-item.active { background: var(--accent-soft); border-color: var(--accent); }
+  .task-item.done .task-text { text-decoration: line-through; color: var(--text-faint); }
+  .task-item.done .task-time { text-decoration: line-through; }
   .task-checkbox {
-    width: 16px;
-    height: 16px;
-    border: 1.5px solid var(--text-faint);
-    border-radius: 4px;
-    flex-shrink: 0;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 16px; height: 16px;
+    border: 1.5px solid var(--text-faint); border-radius: 4px;
+    flex-shrink: 0; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
     transition: all 0.15s;
   }
-  .task-item.done .task-checkbox {
-    background: var(--success);
-    border-color: var(--success);
-  }
+  .task-item.done .task-checkbox { background: var(--success); border-color: var(--success); }
   .task-item.done .task-checkbox::after {
-    content: '✓';
-    color: var(--bg);
-    font-size: 11px;
-    font-weight: 700;
+    content: '✓'; color: var(--bg); font-size: 11px; font-weight: 700;
+  }
+  .task-time {
+    font-family: var(--mono); font-size: 12px; color: var(--accent);
+    flex-shrink: 0; min-width: 38px;
   }
   .task-text {
-    flex: 1;
-    font-size: 14px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    flex: 1; font-size: 14px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .task-delete {
-    background: none;
-    border: none;
-    color: var(--text-faint);
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.15s;
-    font-size: 16px;
-    padding: 0 4px;
+    background: none; border: none; color: var(--text-faint);
+    cursor: pointer; opacity: 0;
+    transition: opacity 0.15s; font-size: 16px; padding: 0 4px;
   }
   .task-item:hover .task-delete { opacity: 1; }
   .task-delete:hover { color: var(--danger); }
 
   .empty-tasks {
-    color: var(--text-faint);
-    font-size: 13px;
-    font-style: italic;
-    text-align: center;
-    padding: 24px 0;
+    color: var(--text-faint); font-size: 13px; font-style: italic;
+    text-align: center; padding: 24px 0;
   }
 
+  .day-summary {
+    font-size: 11px; color: var(--text-faint);
+    margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid var(--border);
+    text-align: center; letter-spacing: 0.05em;
+  }
+  .day-summary span { color: var(--accent); font-weight: 500; }
+
+  /* MAIN */
   .main {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px;
-    position: relative;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px; position: relative;
+  }
+
+  /* Promessa visível durante o dia */
+  .promise-banner {
+    position: absolute;
+    top: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 600px;
+    width: calc(100% - 80px);
+    text-align: center;
+    padding: 14px 20px;
+    background: rgba(212, 165, 116, 0.06);
+    border: 1px solid rgba(212, 165, 116, 0.18);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .promise-banner:hover {
+    background: rgba(212, 165, 116, 0.1);
+    border-color: rgba(212, 165, 116, 0.3);
+  }
+  .promise-banner .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--text-faint);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .promise-banner .text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--text);
+    line-height: 1.4;
   }
 
   .session-status {
-    font-family: var(--serif);
-    font-style: italic;
-    font-size: 18px;
-    color: var(--text-dim);
-    margin-bottom: 8px;
-    letter-spacing: 0.02em;
+    font-family: var(--serif); font-style: italic;
+    font-size: 18px; color: var(--text-dim);
+    margin-bottom: 8px; letter-spacing: 0.02em;
   }
 
   .current-task {
-    font-size: 14px;
-    color: var(--accent);
-    margin-bottom: 60px;
-    min-height: 20px;
-    text-align: center;
-    max-width: 500px;
+    font-size: 14px; color: var(--accent);
+    margin-bottom: 60px; min-height: 20px;
+    text-align: center; max-width: 500px;
   }
 
   .timer-display {
@@ -322,78 +301,47 @@
     margin-bottom: 60px;
     user-select: none;
   }
-  .timer-display.running { color: var(--text); }
   .timer-display.break { color: var(--success); }
 
-  .timer-controls {
-    display: flex;
-    gap: 16px;
-  }
+  .timer-controls { display: flex; gap: 16px; }
 
   .btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 14px 32px;
-    border-radius: 999px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    transition: all 0.2s;
-    font-family: var(--sans);
+    background: transparent; border: 1px solid var(--border); color: var(--text);
+    padding: 14px 32px; border-radius: 999px; cursor: pointer;
+    font-size: 14px; font-weight: 500; letter-spacing: 0.02em;
+    transition: all 0.2s; font-family: var(--sans);
   }
-  .btn:hover {
-    background: var(--bg-hover);
-    border-color: var(--text-faint);
-  }
+  .btn:hover { background: var(--bg-hover); border-color: var(--text-faint); }
   .btn-primary {
-    background: var(--accent);
-    color: var(--bg);
-    border-color: var(--accent);
-    font-weight: 600;
+    background: var(--accent); color: var(--bg);
+    border-color: var(--accent); font-weight: 600;
   }
-  .btn-primary:hover {
-    background: var(--accent);
-    opacity: 0.9;
-    border-color: var(--accent);
-  }
-  .btn-danger:hover {
-    background: var(--danger);
-    border-color: var(--danger);
-    color: var(--text);
-  }
-  .btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
+  .btn-primary:hover { background: var(--accent); opacity: 0.9; border-color: var(--accent); }
+  .btn-danger:hover { background: var(--danger); border-color: var(--danger); color: var(--text); }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-  .session-counter {
+  /* Stats no canto */
+  .stats-corner {
     position: absolute;
     bottom: 32px;
     right: 32px;
     font-family: var(--mono);
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-faint);
     letter-spacing: 0.05em;
+    text-align: right;
+    line-height: 1.8;
   }
-  .session-counter span { color: var(--accent); }
+  .stats-corner span.accent { color: var(--accent); }
+  .stats-corner span.success { color: var(--success); }
+  .stats-corner span.danger { color: var(--danger); }
+  .stats-corner .stat-line { display: block; }
 
   .silence-btn {
-    position: fixed;
-    bottom: 32px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--accent);
-    color: var(--bg);
-    border: none;
-    padding: 14px 32px;
-    border-radius: 999px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    display: none;
-    z-index: 50;
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: var(--bg); border: none;
+    padding: 14px 32px; border-radius: 999px; cursor: pointer;
+    font-size: 14px; font-weight: 600; display: none; z-index: 50;
     box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     animation: pulse 1.5s ease-in-out infinite;
   }
@@ -403,22 +351,20 @@
     50% { transform: translateX(-50%) scale(1.05); }
   }
 
+  /* Modal genérico */
   .modal-overlay {
-    position: fixed;
-    inset: 0;
+    position: fixed; inset: 0;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(8px);
     display: none;
-    align-items: center;
-    justify-content: center;
+    align-items: center; justify-content: center;
     z-index: 100;
     animation: fadeIn 0.2s ease-out;
+    padding: 20px;
+    overflow-y: auto;
   }
   .modal-overlay.show { display: flex; }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
   .modal {
     background: var(--bg-elevated);
@@ -426,9 +372,10 @@
     border-radius: 12px;
     padding: 40px;
     max-width: 580px;
-    width: 90%;
+    width: 100%;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
     animation: slideUp 0.3s ease-out;
+    margin: auto;
   }
   @keyframes slideUp {
     from { transform: translateY(20px); opacity: 0; }
@@ -436,61 +383,34 @@
   }
 
   .modal-title {
-    font-family: var(--serif);
-    font-style: italic;
-    font-size: 22px;
-    margin-bottom: 8px;
-    color: var(--accent);
+    font-family: var(--serif); font-style: italic;
+    font-size: 22px; margin-bottom: 8px; color: var(--accent);
   }
-  .modal-subtitle {
-    color: var(--text-dim);
-    font-size: 14px;
-    margin-bottom: 28px;
-  }
+  .modal-subtitle { color: var(--text-dim); font-size: 14px; margin-bottom: 28px; }
 
-  /* Questão e respostas com KaTeX renderizado */
+  /* Math challenge */
   .question {
-    background: var(--bg);
-    padding: 28px 24px;
-    border-radius: 8px;
-    margin-bottom: 24px;
-    text-align: center;
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-size: 26px;
+    background: var(--bg); padding: 28px 24px;
+    border-radius: 8px; margin-bottom: 24px;
+    text-align: center; border: 1px solid var(--border);
+    color: var(--text); font-size: 26px;
     min-height: 90px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
   }
   .question .katex { font-size: 1.4em; }
 
   .options {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 24px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px;
   }
   .option {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 18px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: all 0.15s;
-    text-align: center;
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    padding: 18px 16px; border-radius: 8px; cursor: pointer;
+    font-size: 16px; transition: all 0.15s; text-align: center;
     min-height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
   }
   .option .katex { font-size: 1.1em; }
-  .option:hover {
-    border-color: var(--accent);
-    background: var(--bg-hover);
-  }
+  .option:hover { border-color: var(--accent); background: var(--bg-hover); }
   .option.wrong {
     border-color: var(--danger);
     background: rgba(201, 97, 74, 0.1);
@@ -503,33 +423,236 @@
   }
 
   .modal-feedback {
-    font-size: 13px;
-    color: var(--text-dim);
-    text-align: center;
-    min-height: 20px;
-    margin-bottom: 16px;
+    font-size: 13px; color: var(--text-dim);
+    text-align: center; min-height: 20px; margin-bottom: 16px;
   }
   .modal-feedback.error { color: var(--danger); }
 
   .modal-cancel {
-    background: none;
+    background: none; border: 1px solid var(--border); color: var(--text-dim);
+    padding: 10px 20px; border-radius: 6px; cursor: pointer;
+    font-size: 13px; width: 100%;
+  }
+  .modal-cancel:hover { color: var(--text); border-color: var(--text-faint); }
+
+  /* PROMESSA DO DIA — modal especial */
+  .promise-quote {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 26px;
+    line-height: 1.4;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 8px;
+    padding: 0 10px;
+  }
+  .promise-quote-author {
+    font-size: 12px;
+    color: var(--text-faint);
+    text-align: center;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 36px;
+  }
+
+  .promise-question {
+    font-family: var(--serif);
+    font-size: 18px;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+
+  .promise-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 16px 18px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: var(--sans);
+    margin-bottom: 24px;
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.5;
+  }
+  .promise-input:focus { outline: none; border-color: var(--accent); }
+
+  .modal-btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    padding: 14px 32px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    width: 100%;
+    transition: opacity 0.2s;
+    font-family: var(--sans);
+  }
+  .modal-btn-primary:hover { opacity: 0.9; }
+  .modal-btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* AUDITORIA */
+  .audit-task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+    max-height: 50vh;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .audit-task-list::-webkit-scrollbar { width: 6px; }
+  .audit-task-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .audit-task {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .audit-task-text {
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+  .audit-task-text .time-badge {
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 12px;
+    margin-right: 8px;
+  }
+  .audit-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 6px;
+  }
+  .audit-option {
+    background: transparent;
     border: 1px solid var(--border);
     color: var(--text-dim);
-    padding: 10px 20px;
+    padding: 8px 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.15s;
+    text-align: center;
+    line-height: 1.3;
+  }
+  .audit-option:hover { border-color: var(--text-faint); color: var(--text); }
+  .audit-option.selected.full { background: rgba(122, 154, 106, 0.15); border-color: var(--success); color: var(--success); }
+  .audit-option.selected.partial { background: rgba(212, 165, 116, 0.15); border-color: var(--accent); color: var(--accent); }
+  .audit-option.selected.none { background: rgba(201, 97, 74, 0.15); border-color: var(--danger); color: var(--danger); }
+  .audit-option.selected.other { background: var(--bg-hover); border-color: var(--text-dim); color: var(--text); }
+  .audit-option-icon { font-size: 16px; display: block; margin-bottom: 2px; }
+
+  .audit-promise-check {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+    margin-bottom: 24px;
+  }
+  .audit-promise-text {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--text);
+    margin-bottom: 14px;
+    line-height: 1.5;
+    font-size: 16px;
+  }
+  .audit-promise-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .audit-promise-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 10px;
     border-radius: 6px;
     cursor: pointer;
     font-size: 13px;
-    width: 100%;
+    font-family: var(--sans);
+    transition: all 0.15s;
   }
-  .modal-cancel:hover {
-    color: var(--text);
-    border-color: var(--text-faint);
+  .audit-promise-btn:hover { border-color: var(--text-faint); color: var(--text); }
+  .audit-promise-btn.selected.yes { background: rgba(122, 154, 106, 0.15); border-color: var(--success); color: var(--success); }
+  .audit-promise-btn.selected.no { background: rgba(201, 97, 74, 0.15); border-color: var(--danger); color: var(--danger); }
+
+  /* Modal de gerenciar frases */
+  .quotes-list {
+    max-height: 40vh;
+    overflow-y: auto;
+    margin-bottom: 18px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px;
+  }
+  .quotes-list::-webkit-scrollbar { width: 6px; }
+  .quotes-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .quote-row {
+    padding: 10px 14px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    line-height: 1.4;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-dim);
+  }
+  .quote-row.user-added { color: var(--text); }
+  .quote-row .quote-text { flex: 1; }
+  .quote-row .quote-source {
+    font-family: var(--sans);
+    font-style: normal;
+    font-size: 9px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+  .quote-row .quote-delete {
+    background: none; border: none;
+    color: var(--text-faint); cursor: pointer;
+    font-size: 16px; padding: 0 4px;
+    opacity: 0; transition: opacity 0.15s;
+  }
+  .quote-row:hover .quote-delete { opacity: 1; }
+  .quote-row .quote-delete:hover { color: var(--danger); }
+
+  .quote-add {
+    display: grid;
+    grid-template-columns: 1fr 70px;
+    gap: 8px;
+  }
+  .quote-add textarea {
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 12px; border-radius: 6px; font-size: 13px;
+    font-family: var(--serif); font-style: italic;
+    resize: vertical; min-height: 44px;
+  }
+  .quote-add textarea:focus { outline: none; border-color: var(--accent); }
+  .quote-add button {
+    background: var(--accent); color: var(--bg); border: none;
+    border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;
   }
 
   @media (max-width: 800px) {
     .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
     .sidebar { border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
     .timer-display { font-size: 120px; }
+    .promise-banner { position: relative; top: 0; left: 0; transform: none; width: 100%; margin-bottom: 24px; }
+    .stats-corner { position: relative; bottom: 0; right: 0; margin-top: 20px; text-align: center; }
   }
 </style>
 </head>
@@ -556,10 +679,8 @@
       <div class="section-label">Despertador</div>
       <div class="sound-config">
         <div class="sound-current">
-          <div class="sound-current-name" id="soundCurrentName">
-            <strong>Padrão</strong> — sino suave
-          </div>
-          <button class="sound-remove" id="soundRemoveBtn" style="display:none;" title="Voltar pro padrão">×</button>
+          <div class="sound-current-name" id="soundCurrentName"><strong>Padrão</strong> — sino suave</div>
+          <button class="sound-remove" id="soundRemoveBtn" style="display:none;">×</button>
         </div>
         <div class="sound-actions">
           <button class="sound-btn" id="soundTestBtn">▶ Testar</button>
@@ -570,31 +691,58 @@
     </div>
 
     <div>
-      <div class="section-label">Tarefas</div>
+      <div class="section-label">
+        Agenda
+        <button class="section-label-action" id="manageQuotesBtn">Frases</button>
+      </div>
+      <div class="day-nav">
+        <button class="day-nav-btn" id="prevDayBtn">‹</button>
+        <div class="day-nav-current" id="dayNavCurrent">
+          <span class="day-name">Hoje</span>
+          <span class="day-date">—</span>
+        </div>
+        <button class="day-nav-btn" id="nextDayBtn">›</button>
+        <button class="today-btn" id="todayBtn">Hoje</button>
+      </div>
+
       <div class="task-add">
-        <input type="text" id="taskInput" placeholder="Nova tarefa..." maxlength="80">
+        <input type="text" id="taskInput" placeholder="O que fazer..." maxlength="80">
+        <input type="time" id="taskTimeInput" title="Horário (opcional)">
         <button id="addTaskBtn">+</button>
       </div>
+
       <ul class="task-list" id="taskList"></ul>
-      <div class="empty-tasks" id="emptyTasks">Nenhuma tarefa ainda</div>
+      <div class="empty-tasks" id="emptyTasks">Nenhuma tarefa nesse dia</div>
+      <div class="day-summary" id="daySummary"></div>
     </div>
   </aside>
 
   <main class="main">
+    <div class="promise-banner" id="promiseBanner" style="display:none;">
+      <div class="label">Promessa de hoje</div>
+      <div class="text" id="promiseBannerText"></div>
+    </div>
+
     <div class="session-status" id="sessionStatus">Pronto pra focar</div>
     <div class="current-task" id="currentTask"></div>
     <div class="timer-display" id="timerDisplay">25:00</div>
     <div class="timer-controls">
       <button class="btn btn-primary" id="startBtn">Iniciar</button>
-      <button class="btn" id="pauseBtn" disabled>Pausar</button>
       <button class="btn btn-danger" id="stopBtn" disabled>Parar</button>
     </div>
-    <div class="session-counter">Sessões concluídas: <span id="sessionCount">0</span></div>
+
+    <div class="stats-corner">
+      <div class="stat-line">Sessões hoje: <span class="accent" id="sessionCount">0</span></div>
+      <div class="stat-line" id="weekStatsLine" style="display:none;">
+        Semana: <span class="success" id="weekWins">0</span> vitórias / <span class="danger" id="weekLosses">0</span> rendições
+      </div>
+    </div>
   </main>
 </div>
 
 <button class="silence-btn" id="silenceBtn">Silenciar</button>
 
+<!-- MODAL: Desafio Matemático -->
 <div class="modal-overlay" id="mathModal">
   <div class="modal">
     <div class="modal-title">Quer mesmo parar?</div>
@@ -606,26 +754,194 @@
   </div>
 </div>
 
+<!-- MODAL: Promessa do Dia -->
+<div class="modal-overlay" id="promiseModal">
+  <div class="modal">
+    <div class="promise-quote" id="promiseQuote"></div>
+    <div class="promise-quote-author" id="promiseQuoteAuthor"></div>
+    <div class="promise-question">O que faria desse dia um sucesso, mesmo que tudo desse errado?</div>
+    <textarea class="promise-input" id="promiseInput" placeholder="Escreve uma frase. Uma só." maxlength="200"></textarea>
+    <button class="modal-btn-primary" id="commitPromiseBtn" disabled>Comprometer</button>
+  </div>
+</div>
+
+<!-- MODAL: Auditoria do Dia Anterior -->
+<div class="modal-overlay" id="auditModal">
+  <div class="modal">
+    <div class="modal-title" id="auditTitle">Ontem</div>
+    <div class="modal-subtitle">Sem julgamento. Só verdade.</div>
+
+    <div id="auditPromiseSection" style="display:none;">
+      <div class="audit-promise-check">
+        <div class="audit-promise-text" id="auditPromiseText">"..."</div>
+        <div style="font-size: 12px; color: var(--text-faint); margin-bottom: 10px;">Cumpriu?</div>
+        <div class="audit-promise-buttons">
+          <button class="audit-promise-btn" data-answer="yes">Sim</button>
+          <button class="audit-promise-btn" data-answer="no">Não</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="auditTasksSection" style="display:none;">
+      <div style="font-size: 12px; color: var(--text-faint); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.1em;">Tarefas que você programou</div>
+      <div class="audit-task-list" id="auditTaskList"></div>
+    </div>
+
+    <button class="modal-btn-primary" id="finishAuditBtn">Continuar</button>
+  </div>
+</div>
+
+<!-- MODAL: Gerenciar Frases -->
+<div class="modal-overlay" id="quotesModal">
+  <div class="modal">
+    <div class="modal-title">Frases</div>
+    <div class="modal-subtitle">Suas e as nossas. Adicione as que mexem com você.</div>
+    <div class="quotes-list" id="quotesList"></div>
+    <div class="quote-add">
+      <textarea id="newQuoteInput" placeholder="Escreva uma frase..." maxlength="200"></textarea>
+      <button id="addQuoteBtn">+ Adicionar</button>
+    </div>
+    <button class="modal-cancel" id="closeQuotesBtn" style="margin-top: 16px;">Fechar</button>
+  </div>
+</div>
+
 <script>
+// =========== STORAGE ===========
+const STORAGE = {
+  TASKS: 'foco.tasks',
+  CONFIG: 'foco.config',
+  SESSIONS_TODAY: 'foco.sessionsToday',
+  PROMISES: 'foco.promises',         // { "YYYY-MM-DD": { text, fulfilled: null|true|false } }
+  USER_QUOTES: 'foco.userQuotes',    // ["frase 1", "frase 2"]
+  AUDITS: 'foco.audits',             // { "YYYY-MM-DD": { tasks: {taskId: status}, promiseFulfilled: bool } }
+  LAST_OPEN_DATE: 'foco.lastOpenDate',
+  WEEK_STATS: 'foco.weekStats',      // { weekKey, wins, losses }
+};
+
+function loadFromStorage(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (e) { return fallback; }
+}
+function saveToStorage(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+}
+
+// =========== BANCO DE FRASES ===========
+// 60% tom firme + 40% mais áspero. Originais.
+const DEFAULT_QUOTES = [
+  // Tom firme (60%)
+  "Disciplina é lembrar do que você queria quando decidiu isso.",
+  "Vontade vem e vai. Compromisso fica.",
+  "Você não tá cansado. Tá entediado de ainda não ter chegado.",
+  "O foco que você não tem agora é o sucesso que você não vai ter depois.",
+  "Conforto é o caixão dos sonhos médios.",
+  "Cada vez que você desiste, ensina seu cérebro que desistir é uma opção.",
+  "Sua versão de daqui a um ano depende da próxima hora.",
+  "Hoje é o único dia que você consegue trabalhar.",
+  "Pequenas decisões são as únicas que existem.",
+  "A diferença entre quem chega e quem não chega é só insistência.",
+  "Você não precisa de motivação. Precisa de sistema.",
+  "O que você faz quando ninguém tá olhando é o que você é.",
+  "Disciplina é amor próprio em forma de ação.",
+  "Constância vence intensidade.",
+  "O tempo passa. A pergunta é: passa com ou sem você produzindo.",
+  "Mediocridade é confortável porque ninguém critica quem é como todo mundo.",
+  "Foco não é um talento. É uma escolha repetida.",
+  "Sucesso é boring. É a mesma coisa todo dia.",
+  "Você não falha por falta de capacidade. Falha por falta de constância.",
+  "Disciplina é fazer o que precisa ser feito mesmo quando você não quer.",
+  "Sua mente vai tentar negociar. Não negocie.",
+  "A versão de você que desiste hoje vai ter que conviver com você amanhã.",
+  "Ninguém vai sentir falta da sua mediocridade.",
+  "Quem foca, lapida. Quem dispersa, evapora.",
+  "Cansaço passa. Arrependimento fica.",
+  "Coragem não é ausência de medo. É agir mesmo com ele.",
+  "O caminho difícil é o atalho.",
+  "Disciplina é o preço da liberdade futura.",
+  "Você não tá perdendo tempo. Tá perdendo possibilidade.",
+  "Resultado é o que sobra depois que a desculpa acaba.",
+
+  // Tom mais áspero (40%)
+  "Ninguém vai te buscar. Levanta.",
+  "Tem gente acordando agora pra te ultrapassar.",
+  "O que você posterga hoje, alguém com menos talento já está fazendo.",
+  "Para de chorar e produz.",
+  "Sua zona de conforto não vai te levar a lugar nenhum.",
+  "Você não merece o resultado se não fez o trabalho.",
+  "Excusa é cadeira de rodas pra mente saudável.",
+  "Pare de se enganar. Você sabe o que tem que fazer.",
+  "Se fosse fácil, qualquer um faria. E ninguém faz.",
+  "A vida não tá esperando você ficar pronto.",
+  "Ou você se cobra, ou a vida cobra. Escolhe.",
+  "Não existe versão de você que não trabalhou e venceu.",
+  "Reclamar não muda nada. Trabalhar muda tudo.",
+  "Sua geração inteira vai falhar. Não seja parte da estatística.",
+  "A diferença entre você e quem você admira é horas de trabalho.",
+  "Você não precisa estar pronto. Precisa começar.",
+  "Procrastinação é roubo. Você tá roubando de você mesmo.",
+  "Ninguém liga pro seu potencial. Só pro seu resultado.",
+  "Talento sem trabalho é um insulto a quem não tem nem um nem outro.",
+  "Você é o que você faz repetidamente, não o que você diz.",
+  "Cada minuto perdido foi um minuto que alguém usou pra te passar.",
+  "Acabou o tempo do amador. Tá na hora de tratar isso a sério.",
+  "A dor de não fazer dura mais que a dor de fazer.",
+  "Não é sobre como você se sente. É sobre o que precisa ser feito.",
+  "Quem trabalha quando os outros descansam, descansa quando os outros trabalham.",
+];
+
+// Fonte das frases pra exibir abaixo
+function getQuoteSource(text, userQuotes) {
+  return userQuotes.includes(text) ? 'sua' : 'foco.';
+}
+
+// Pega frase do dia: usa data como seed pra rotação determinística
+function getQuoteOfTheDay(allQuotes, dateKey) {
+  if (allQuotes.length === 0) return { text: '', source: '' };
+  // Hash simples baseado na data
+  let hash = 0;
+  for (let i = 0; i < dateKey.length; i++) {
+    hash = (hash * 31 + dateKey.charCodeAt(i)) >>> 0;
+  }
+  const idx = hash % allQuotes.length;
+  return allQuotes[idx];
+}
+
+// =========== ESTADO ===========
 const state = {
   focusMin: 25,
   breakMin: 5,
   remainingSec: 25 * 60,
   isRunning: false,
-  isPaused: false,
   isBreak: false,
   intervalId: null,
-  tasks: [],
+
+  tasksByDay: {},
+  selectedDate: '',
   activeTaskId: null,
+  activeTaskDate: null,
   sessionsCompleted: 0,
+
   currentQuestion: null,
   customSound: null,
 
-  // Estado de áudio unificado — sempre só uma coisa toca por vez
-  currentAudioCtx: null,    // Web Audio (som default)
-  currentAudioElement: null, // <audio> (som customizado)
-  currentTimers: [],         // timeouts a limpar
-  isAlarmMode: false,        // true = alarme real, false = teste
+  currentAudioCtx: null,
+  currentAudioElement: null,
+  currentTimers: [],
+  isAlarmMode: false,
+
+  // Promessa do dia
+  todayPromise: null,    // { text, fulfilled }
+
+  // Stats da semana (vitórias contra desistir + rendições)
+  weekStats: { weekKey: '', wins: 0, losses: 0 },
+
+  // Frases do usuário
+  userQuotes: [],
+
+  // Auditoria
+  auditAnswers: { promiseFulfilled: null, tasks: {} },
 };
 
 const el = {
@@ -635,13 +951,17 @@ const el = {
   status: document.getElementById('sessionStatus'),
   currentTask: document.getElementById('currentTask'),
   startBtn: document.getElementById('startBtn'),
-  pauseBtn: document.getElementById('pauseBtn'),
   stopBtn: document.getElementById('stopBtn'),
   taskInput: document.getElementById('taskInput'),
+  taskTimeInput: document.getElementById('taskTimeInput'),
   addTaskBtn: document.getElementById('addTaskBtn'),
   taskList: document.getElementById('taskList'),
   emptyTasks: document.getElementById('emptyTasks'),
+  daySummary: document.getElementById('daySummary'),
   sessionCount: document.getElementById('sessionCount'),
+  weekStatsLine: document.getElementById('weekStatsLine'),
+  weekWins: document.getElementById('weekWins'),
+  weekLosses: document.getElementById('weekLosses'),
   modal: document.getElementById('mathModal'),
   question: document.getElementById('question'),
   options: document.getElementById('options'),
@@ -653,127 +973,203 @@ const el = {
   soundUploadBtn: document.getElementById('soundUploadBtn'),
   soundFileInput: document.getElementById('soundFileInput'),
   silenceBtn: document.getElementById('silenceBtn'),
+  prevDayBtn: document.getElementById('prevDayBtn'),
+  nextDayBtn: document.getElementById('nextDayBtn'),
+  todayBtn: document.getElementById('todayBtn'),
+  dayNavCurrent: document.getElementById('dayNavCurrent'),
+  promiseBanner: document.getElementById('promiseBanner'),
+  promiseBannerText: document.getElementById('promiseBannerText'),
+  promiseModal: document.getElementById('promiseModal'),
+  promiseQuote: document.getElementById('promiseQuote'),
+  promiseQuoteAuthor: document.getElementById('promiseQuoteAuthor'),
+  promiseInput: document.getElementById('promiseInput'),
+  commitPromiseBtn: document.getElementById('commitPromiseBtn'),
+  auditModal: document.getElementById('auditModal'),
+  auditTitle: document.getElementById('auditTitle'),
+  auditPromiseSection: document.getElementById('auditPromiseSection'),
+  auditPromiseText: document.getElementById('auditPromiseText'),
+  auditTasksSection: document.getElementById('auditTasksSection'),
+  auditTaskList: document.getElementById('auditTaskList'),
+  finishAuditBtn: document.getElementById('finishAuditBtn'),
+  manageQuotesBtn: document.getElementById('manageQuotesBtn'),
+  quotesModal: document.getElementById('quotesModal'),
+  quotesList: document.getElementById('quotesList'),
+  newQuoteInput: document.getElementById('newQuoteInput'),
+  addQuoteBtn: document.getElementById('addQuoteBtn'),
+  closeQuotesBtn: document.getElementById('closeQuotesBtn'),
 };
+
+// =========== DATAS ===========
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function dateKeyToDate(key) {
+  const [y,m,d] = key.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function shiftDateKey(key, deltaDays) {
+  const d = dateKeyToDate(key);
+  d.setDate(d.getDate() + deltaDays);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function formatDayLabel(key) {
+  const today = todayKey();
+  const tomorrow = shiftDateKey(today, 1);
+  const yesterday = shiftDateKey(today, -1);
+  let label;
+  if (key === today) label = 'Hoje';
+  else if (key === tomorrow) label = 'Amanhã';
+  else if (key === yesterday) label = 'Ontem';
+  else {
+    const d = dateKeyToDate(key);
+    const dias = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+    label = dias[d.getDay()];
+  }
+  const d = dateKeyToDate(key);
+  return { name: label, date: `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}` };
+}
+// Chave da semana: ano-numerodaSemanaISO
+function weekKey(date) {
+  const d = new Date(date.getTime());
+  d.setHours(0,0,0,0);
+  // ISO week
+  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  const weekNum = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return `${d.getFullYear()}-W${weekNum}`;
+}
 
 // =========== TIMER ===========
 function formatTime(sec) {
-  const m = Math.floor(sec / 60).toString().padStart(2, '0');
-  const s = (sec % 60).toString().padStart(2, '0');
+  const m = Math.floor(sec/60).toString().padStart(2,'0');
+  const s = (sec%60).toString().padStart(2,'0');
   return `${m}:${s}`;
 }
-
 function updateDisplay() {
   el.display.textContent = formatTime(state.remainingSec);
   document.title = `${formatTime(state.remainingSec)} — ${state.isBreak ? 'Descanso' : 'Foco'}`;
 }
-
 function updateStatus() {
-  if (!state.isRunning && !state.isPaused) {
+  if (!state.isRunning) {
     el.status.textContent = 'Pronto pra focar';
     el.display.className = 'timer-display';
   } else if (state.isBreak) {
-    el.status.textContent = state.isPaused ? 'Descanso pausado' : 'Descansando';
+    el.status.textContent = 'Descansando';
     el.display.className = 'timer-display break';
   } else {
-    el.status.textContent = state.isPaused ? 'Foco pausado' : 'Em foco';
+    el.status.textContent = 'Em foco';
     el.display.className = 'timer-display running';
   }
+  el.stopBtn.textContent = state.isBreak ? 'Pular descanso' : 'Parar';
 }
-
 function updateCurrentTask() {
-  const task = state.tasks.find(t => t.id === state.activeTaskId);
-  el.currentTask.textContent = task ? `→ ${task.text}` : '';
+  if (!state.activeTaskId) { el.currentTask.textContent = ''; return; }
+  const tasks = state.tasksByDay[state.activeTaskDate] || [];
+  const t = tasks.find(x => x.id === state.activeTaskId);
+  el.currentTask.textContent = t ? `→ ${t.text}` : '';
 }
-
 function startTimer() {
-  if (!state.isPaused) {
-    state.focusMin = parseInt(el.focusMin.value) || 25;
-    state.breakMin = parseInt(el.breakMin.value) || 5;
-    state.remainingSec = state.isBreak ? state.breakMin * 60 : state.focusMin * 60;
-  }
+  state.focusMin = parseInt(el.focusMin.value) || 25;
+  state.breakMin = parseInt(el.breakMin.value) || 5;
+  saveConfig();
+  state.remainingSec = state.isBreak ? state.breakMin*60 : state.focusMin*60;
   state.isRunning = true;
-  state.isPaused = false;
   el.focusMin.disabled = true;
   el.breakMin.disabled = true;
   el.startBtn.disabled = true;
-  el.pauseBtn.disabled = false;
   el.stopBtn.disabled = false;
-
   state.intervalId = setInterval(() => {
     state.remainingSec--;
     updateDisplay();
-    if (state.remainingSec <= 0) {
-      sessionEnded();
-    }
+    if (state.remainingSec <= 0) sessionEnded();
   }, 1000);
-
   updateDisplay();
   updateStatus();
 }
-
-function pauseTimer() {
-  clearInterval(state.intervalId);
-  state.isRunning = false;
-  state.isPaused = true;
-  el.startBtn.disabled = false;
-  el.startBtn.textContent = 'Continuar';
-  el.pauseBtn.disabled = true;
-  updateStatus();
-}
-
 function stopTimer() {
+  if (state.isBreak) { skipBreak(); return; }
   showMathChallenge();
 }
-
-function forceStop() {
+function skipBreak() { resetTimerState(); }
+function forceStop() { resetTimerState(); }
+function resetTimerState() {
   clearInterval(state.intervalId);
   state.isRunning = false;
-  state.isPaused = false;
   state.isBreak = false;
   state.remainingSec = (parseInt(el.focusMin.value) || 25) * 60;
   el.focusMin.disabled = false;
   el.breakMin.disabled = false;
   el.startBtn.disabled = false;
   el.startBtn.textContent = 'Iniciar';
-  el.pauseBtn.disabled = true;
   el.stopBtn.disabled = true;
   updateDisplay();
   updateStatus();
 }
-
 function sessionEnded() {
   clearInterval(state.intervalId);
   playAlarm();
-
   if (state.isBreak) {
     state.isBreak = false;
-    state.remainingSec = state.focusMin * 60;
+    state.remainingSec = state.focusMin*60;
     state.isRunning = false;
-    state.isPaused = false;
     el.startBtn.disabled = false;
     el.startBtn.textContent = 'Iniciar';
-    el.pauseBtn.disabled = true;
     el.stopBtn.disabled = true;
     el.focusMin.disabled = false;
     el.breakMin.disabled = false;
   } else {
-    state.sessionsCompleted++;
-    el.sessionCount.textContent = state.sessionsCompleted;
+    incrementSessionsToday();
     state.isBreak = true;
-    state.remainingSec = state.breakMin * 60;
+    state.remainingSec = state.breakMin*60;
     startTimer();
   }
   updateDisplay();
   updateStatus();
 }
+function incrementSessionsToday() {
+  state.sessionsCompleted++;
+  el.sessionCount.textContent = state.sessionsCompleted;
+  saveToStorage(STORAGE.SESSIONS_TODAY, { date: todayKey(), count: state.sessionsCompleted });
+}
+function saveConfig() {
+  saveToStorage(STORAGE.CONFIG, { focusMin: state.focusMin, breakMin: state.breakMin });
+}
 
-// =========== ÁUDIO (UNIFICADO) ===========
-/**
- * Para QUALQUER som que esteja tocando.
- * Chamado antes de tocar qualquer som novo, e pelo botão Silenciar.
- */
+// =========== STATS DA SEMANA ===========
+function ensureCurrentWeekStats() {
+  const wk = weekKey(new Date());
+  if (state.weekStats.weekKey !== wk) {
+    state.weekStats = { weekKey: wk, wins: 0, losses: 0 };
+    saveToStorage(STORAGE.WEEK_STATS, state.weekStats);
+  }
+}
+function recordWin() {
+  ensureCurrentWeekStats();
+  state.weekStats.wins++;
+  saveToStorage(STORAGE.WEEK_STATS, state.weekStats);
+  renderWeekStats();
+}
+function recordLoss() {
+  ensureCurrentWeekStats();
+  state.weekStats.losses++;
+  saveToStorage(STORAGE.WEEK_STATS, state.weekStats);
+  renderWeekStats();
+}
+function renderWeekStats() {
+  ensureCurrentWeekStats();
+  const total = state.weekStats.wins + state.weekStats.losses;
+  if (total === 0) {
+    el.weekStatsLine.style.display = 'none';
+    return;
+  }
+  el.weekStatsLine.style.display = 'block';
+  el.weekWins.textContent = state.weekStats.wins;
+  el.weekLosses.textContent = state.weekStats.losses;
+}
+
+// =========== ÁUDIO ===========
 function stopAllAudio() {
-  // Para áudio HTML
   if (state.currentAudioElement) {
     state.currentAudioElement.pause();
     state.currentAudioElement.loop = false;
@@ -781,318 +1177,457 @@ function stopAllAudio() {
     state.currentAudioElement.onended = null;
     state.currentAudioElement = null;
   }
-  // Fecha Web Audio context
   if (state.currentAudioCtx) {
     try { state.currentAudioCtx.close(); } catch(e) {}
     state.currentAudioCtx = null;
   }
-  // Limpa timers
   state.currentTimers.forEach(t => clearTimeout(t));
   state.currentTimers = [];
-  // Reset UI
   el.soundTestBtn.classList.remove('testing');
   el.soundTestBtn.textContent = '▶ Testar';
   state.isAlarmMode = false;
   el.silenceBtn.classList.remove('show');
 }
-
-/**
- * Toca o som default (acorde Em arpejado, fade suave).
- * isAlarm=true → loop INFINITO até clicar em Silenciar.
- * isAlarm=false → 1 repetição (teste).
- */
 function playDefaultSound(isAlarm) {
   stopAllAudio();
   state.isAlarmMode = isAlarm;
   if (isAlarm) el.silenceBtn.classList.add('show');
-
   try {
     state.currentAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const ctx = state.currentAudioCtx;
-    const notes = [329.63, 392.00, 493.88]; // E4, G4, B4
+    const notes = [329.63, 392.00, 493.88];
     const intervalSec = 1.8;
     const noteDuration = 1.4;
-
-    function playChord(startTime) {
+    function playChord(t) {
       notes.forEach((freq, i) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        const t0 = startTime + i * 0.08;
+        osc.type = 'sine'; osc.frequency.value = freq;
+        osc.connect(gain); gain.connect(ctx.destination);
+        const t0 = t + i*0.08;
         gain.gain.setValueAtTime(0, t0);
-        gain.gain.linearRampToValueAtTime(0.18, t0 + 0.2);
-        gain.gain.exponentialRampToValueAtTime(0.001, t0 + noteDuration);
-        osc.start(t0);
-        osc.stop(t0 + noteDuration);
+        gain.gain.linearRampToValueAtTime(0.18, t0+0.2);
+        gain.gain.exponentialRampToValueAtTime(0.001, t0+noteDuration);
+        osc.start(t0); osc.stop(t0+noteDuration);
       });
     }
-
     if (isAlarm) {
-      // Alarme: agenda 8 acordes pra frente, e a cada 2 acordes
-      // reagenda mais 8 — efeito loop infinito até stopAllAudio.
-      // (O ctx.close() em stopAllAudio cancela tudo automaticamente.)
-      let scheduled = 0;
       function scheduleBatch() {
-        if (!state.currentAudioCtx) return; // foi silenciado
+        if (!state.currentAudioCtx) return;
         const now = state.currentAudioCtx.currentTime;
-        const batchSize = 8;
-        for (let r = 0; r < batchSize; r++) {
-          playChord(now + r * intervalSec);
-        }
-        scheduled++;
-        // Reagenda quando faltarem ~2 acordes pra acabar a fila
-        const reagendarEm = (batchSize - 2) * intervalSec * 1000;
-        const t = setTimeout(scheduleBatch, reagendarEm);
+        for (let r=0; r<8; r++) playChord(now + r*intervalSec);
+        const t = setTimeout(scheduleBatch, 6*intervalSec*1000);
         state.currentTimers.push(t);
       }
       scheduleBatch();
     } else {
-      // Teste: 1 acorde só
-      const now = ctx.currentTime;
-      playChord(now);
+      playChord(ctx.currentTime);
       el.soundTestBtn.classList.add('testing');
       el.soundTestBtn.textContent = '⏸ Parar';
-      const totalMs = (intervalSec + noteDuration) * 1000;
-      const t = setTimeout(() => stopAllAudio(), totalMs);
+      const t = setTimeout(() => stopAllAudio(), (intervalSec+noteDuration)*1000);
       state.currentTimers.push(t);
     }
-  } catch (e) {
-    console.error('Erro no áudio:', e);
-    stopAllAudio();
-  }
+  } catch(e) { stopAllAudio(); }
 }
-
-/**
- * Toca o som customizado.
- * isAlarm=true → loop INFINITO até clicar em Silenciar.
- * isAlarm=false → toca por NO MÁXIMO 5s, sem loop (apenas pra ouvir uma amostra).
- */
 function playCustomSound(isAlarm) {
   stopAllAudio();
   state.isAlarmMode = isAlarm;
   if (isAlarm) el.silenceBtn.classList.add('show');
-
   try {
     const audio = state.customSound.audioElement;
     audio.currentTime = 0;
     audio.loop = isAlarm;
     audio.play();
     state.currentAudioElement = audio;
-
-    if (isAlarm) {
-      // Alarme: loop infinito até clicar em Silenciar. Nada de timeout.
-    } else {
-      // Teste: para depois de 5s no máximo
+    if (!isAlarm) {
       el.soundTestBtn.classList.add('testing');
       el.soundTestBtn.textContent = '⏸ Parar';
       const t = setTimeout(() => stopAllAudio(), 5000);
       state.currentTimers.push(t);
-      // Se o áudio acabar antes dos 5s, libera o botão
       audio.onended = () => stopAllAudio();
     }
-  } catch (e) {
-    console.error('Erro no áudio customizado:', e);
-    stopAllAudio();
-  }
+  } catch(e) { stopAllAudio(); }
 }
-
 function playAlarm() {
-  if (state.customSound) {
-    playCustomSound(true);
-  } else {
-    playDefaultSound(true);
-  }
+  if (state.customSound) playCustomSound(true);
+  else playDefaultSound(true);
 }
-
 function testSound() {
-  // Se já tá tocando, o clique para
-  if (state.currentAudioCtx || state.currentAudioElement) {
-    stopAllAudio();
-    return;
-  }
-  if (state.customSound) {
-    playCustomSound(false);
-  } else {
-    playDefaultSound(false);
-  }
+  if (state.currentAudioCtx || state.currentAudioElement) { stopAllAudio(); return; }
+  if (state.customSound) playCustomSound(false);
+  else playDefaultSound(false);
 }
-
 function handleSoundUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
-
-  if (!file.type.startsWith('audio/')) {
-    alert('Por favor selecione um arquivo de áudio (MP3, WAV, OGG, etc).');
-    return;
-  }
-
-  // Para qualquer som que esteja tocando antes de trocar
+  if (!file.type.startsWith('audio/')) { alert('Arquivo de áudio inválido.'); return; }
   stopAllAudio();
-
-  if (state.customSound) {
-    URL.revokeObjectURL(state.customSound.audioElement.src);
-  }
-
+  if (state.customSound) URL.revokeObjectURL(state.customSound.audioElement.src);
   const url = URL.createObjectURL(file);
   const audio = new Audio(url);
   audio.preload = 'auto';
-
-  state.customSound = {
-    name: file.name,
-    audioElement: audio,
-  };
-
+  state.customSound = { name: file.name, audioElement: audio };
   el.soundCurrentName.innerHTML = `<strong>${escapeHtml(file.name)}</strong>`;
   el.soundRemoveBtn.style.display = 'block';
   el.soundFileInput.value = '';
 }
-
 function removeCustomSound() {
-  // Para qualquer som tocando antes de trocar
   stopAllAudio();
-
-  if (state.customSound) {
-    URL.revokeObjectURL(state.customSound.audioElement.src);
-    state.customSound = null;
-  }
+  if (state.customSound) URL.revokeObjectURL(state.customSound.audioElement.src);
+  state.customSound = null;
   el.soundCurrentName.innerHTML = '<strong>Padrão</strong> — sino suave';
   el.soundRemoveBtn.style.display = 'none';
 }
 
 // =========== TAREFAS ===========
+function getTasksForSelectedDay() {
+  return state.tasksByDay[state.selectedDate] || [];
+}
+function setTasksForSelectedDay(tasks) {
+  if (tasks.length === 0) delete state.tasksByDay[state.selectedDate];
+  else state.tasksByDay[state.selectedDate] = tasks;
+  saveToStorage(STORAGE.TASKS, state.tasksByDay);
+}
+function sortTasks(tasks) {
+  return [...tasks].sort((a,b) => {
+    if (a.time && b.time) return a.time.localeCompare(b.time);
+    if (a.time && !b.time) return -1;
+    if (!a.time && b.time) return 1;
+    return a.id - b.id;
+  });
+}
+function renderDayNav() {
+  const today = todayKey();
+  const isToday = state.selectedDate === today;
+  const { name, date } = formatDayLabel(state.selectedDate);
+  el.dayNavCurrent.innerHTML = `<span class="day-name">${name}</span><span class="day-date">${date}</span>`;
+  el.dayNavCurrent.classList.toggle('is-today', isToday);
+  el.todayBtn.disabled = isToday;
+}
 function renderTasks() {
+  const tasks = sortTasks(getTasksForSelectedDay());
   el.taskList.innerHTML = '';
-  if (state.tasks.length === 0) {
+  if (tasks.length === 0) {
     el.emptyTasks.style.display = 'block';
+    el.daySummary.innerHTML = '';
     return;
   }
   el.emptyTasks.style.display = 'none';
-  state.tasks.forEach(task => {
+  tasks.forEach(task => {
     const li = document.createElement('li');
     li.className = 'task-item';
-    if (task.id === state.activeTaskId) li.classList.add('active');
+    if (task.id === state.activeTaskId && state.selectedDate === state.activeTaskDate) li.classList.add('active');
     if (task.done) li.classList.add('done');
+    const timeHtml = task.time ? `<div class="task-time">${task.time}</div>` : '<div class="task-time"></div>';
     li.innerHTML = `
       <div class="task-checkbox" data-action="toggle"></div>
+      ${timeHtml}
       <div class="task-text">${escapeHtml(task.text)}</div>
       <button class="task-delete" data-action="delete">×</button>
     `;
     li.addEventListener('click', (e) => {
       const action = e.target.dataset.action;
+      const dayTasks = getTasksForSelectedDay();
+      const t = dayTasks.find(x => x.id === task.id);
+      if (!t) return;
       if (action === 'toggle') {
-        task.done = !task.done;
+        t.done = !t.done;
+        if (t.done && state.activeTaskId === t.id) {
+          state.activeTaskId = null; state.activeTaskDate = null;
+        }
       } else if (action === 'delete') {
-        state.tasks = state.tasks.filter(t => t.id !== task.id);
-        if (state.activeTaskId === task.id) state.activeTaskId = null;
+        const filtered = dayTasks.filter(x => x.id !== task.id);
+        setTasksForSelectedDay(filtered);
+        if (state.activeTaskId === t.id) {
+          state.activeTaskId = null; state.activeTaskDate = null;
+        }
+        renderTasks(); renderDaySummary(); updateCurrentTask();
+        return;
       } else {
-        state.activeTaskId = state.activeTaskId === task.id ? null : task.id;
+        if (state.activeTaskId === t.id && state.activeTaskDate === state.selectedDate) {
+          state.activeTaskId = null; state.activeTaskDate = null;
+        } else {
+          state.activeTaskId = t.id; state.activeTaskDate = state.selectedDate;
+        }
       }
-      renderTasks();
-      updateCurrentTask();
+      setTasksForSelectedDay(dayTasks);
+      renderTasks(); renderDaySummary(); updateCurrentTask();
     });
     el.taskList.appendChild(li);
   });
 }
-
+function renderDaySummary() {
+  const tasks = getTasksForSelectedDay();
+  if (tasks.length === 0) { el.daySummary.innerHTML = ''; return; }
+  const done = tasks.filter(t => t.done).length;
+  el.daySummary.innerHTML = `<span>${done}/${tasks.length}</span> concluídas`;
+}
 function escapeHtml(s) {
   const div = document.createElement('div');
   div.textContent = s;
   return div.innerHTML;
 }
-
 function addTask() {
   const text = el.taskInput.value.trim();
   if (!text) return;
-  state.tasks.push({ id: Date.now(), text, done: false });
+  const time = el.taskTimeInput.value || null;
+  const tasks = getTasksForSelectedDay();
+  tasks.push({ id: Date.now(), text, time, done: false });
+  setTasksForSelectedDay(tasks);
   el.taskInput.value = '';
-  renderTasks();
+  el.taskTimeInput.value = '';
+  renderTasks(); renderDaySummary();
+}
+function changeDay(delta) {
+  state.selectedDate = shiftDateKey(state.selectedDate, delta);
+  renderDayNav(); renderTasks(); renderDaySummary();
+}
+function goToToday() {
+  state.selectedDate = todayKey();
+  renderDayNav(); renderTasks(); renderDaySummary();
 }
 
-// =========== DESAFIO MATEMÁTICO (LATEX/KaTeX) ===========
-// Cada questão usa LaTeX. KaTeX renderiza isso como notação matemática real.
+// =========== PROMESSA DO DIA ===========
+function getAllQuotes() {
+  return [
+    ...DEFAULT_QUOTES.map(t => ({ text: t, source: 'foco.' })),
+    ...state.userQuotes.map(t => ({ text: t, source: 'sua' })),
+  ];
+}
+function getTodayPromise() {
+  const promises = loadFromStorage(STORAGE.PROMISES, {});
+  return promises[todayKey()] || null;
+}
+function saveTodayPromise(text) {
+  const promises = loadFromStorage(STORAGE.PROMISES, {});
+  promises[todayKey()] = { text, fulfilled: null };
+  saveToStorage(STORAGE.PROMISES, promises);
+  state.todayPromise = promises[todayKey()];
+}
+function setPromiseFulfilled(dateKey, fulfilled) {
+  const promises = loadFromStorage(STORAGE.PROMISES, {});
+  if (promises[dateKey]) {
+    promises[dateKey].fulfilled = fulfilled;
+    saveToStorage(STORAGE.PROMISES, promises);
+  }
+}
+function showPromiseModal() {
+  const allQuotes = getAllQuotes();
+  const quote = getQuoteOfTheDay(allQuotes, todayKey());
+  if (quote) {
+    el.promiseQuote.textContent = `"${quote.text}"`;
+    el.promiseQuoteAuthor.textContent = `— ${quote.source}`;
+  }
+  el.promiseInput.value = '';
+  el.commitPromiseBtn.disabled = true;
+  el.promiseModal.classList.add('show');
+  setTimeout(() => el.promiseInput.focus(), 200);
+}
+function commitPromise() {
+  const text = el.promiseInput.value.trim();
+  if (!text) return;
+  saveTodayPromise(text);
+  el.promiseModal.classList.remove('show');
+  renderPromiseBanner();
+}
+function renderPromiseBanner() {
+  if (state.todayPromise && state.todayPromise.text) {
+    el.promiseBannerText.textContent = `"${state.todayPromise.text}"`;
+    el.promiseBanner.style.display = 'block';
+  } else {
+    el.promiseBanner.style.display = 'none';
+  }
+}
+
+// =========== AUDITORIA DO DIA ANTERIOR ===========
+function getYesterdayDataForAudit() {
+  const yesterday = shiftDateKey(todayKey(), -1);
+  const promises = loadFromStorage(STORAGE.PROMISES, {});
+  const audits = loadFromStorage(STORAGE.AUDITS, {});
+
+  const promise = promises[yesterday];
+  const tasks = state.tasksByDay[yesterday] || [];
+  const alreadyAudited = audits[yesterday];
+
+  // Se nem teve promessa nem teve tarefas, não audita
+  if (!promise && tasks.length === 0) return null;
+  // Se já auditou, não audita de novo
+  if (alreadyAudited) return null;
+
+  return { date: yesterday, promise, tasks };
+}
+function showAuditModal(data) {
+  state.auditAnswers = { promiseFulfilled: null, tasks: {} };
+  el.auditTitle.textContent = `Sobre ontem (${formatDayLabel(data.date).date})`;
+
+  // Promessa
+  if (data.promise && data.promise.text) {
+    el.auditPromiseText.textContent = `"${data.promise.text}"`;
+    el.auditPromiseSection.style.display = 'block';
+    document.querySelectorAll('.audit-promise-btn').forEach(btn => {
+      btn.classList.remove('selected', 'yes', 'no');
+      btn.onclick = () => {
+        document.querySelectorAll('.audit-promise-btn').forEach(b => b.classList.remove('selected', 'yes', 'no'));
+        const ans = btn.dataset.answer;
+        btn.classList.add('selected', ans === 'yes' ? 'yes' : 'no');
+        state.auditAnswers.promiseFulfilled = ans === 'yes';
+      };
+    });
+  } else {
+    el.auditPromiseSection.style.display = 'none';
+  }
+
+  // Tarefas
+  if (data.tasks.length > 0) {
+    el.auditTasksSection.style.display = 'block';
+    el.auditTaskList.innerHTML = '';
+    data.tasks.forEach(task => {
+      const div = document.createElement('div');
+      div.className = 'audit-task';
+      const timeBadge = task.time ? `<span class="time-badge">${task.time}</span>` : '';
+      div.innerHTML = `
+        <div class="audit-task-text">${timeBadge}${escapeHtml(task.text)}</div>
+        <div class="audit-options">
+          <button class="audit-option" data-status="full"><span class="audit-option-icon">✓</span>Fiz tudo</button>
+          <button class="audit-option" data-status="partial"><span class="audit-option-icon">◐</span>Parcial</button>
+          <button class="audit-option" data-status="none"><span class="audit-option-icon">✗</span>Não fiz</button>
+          <button class="audit-option" data-status="other"><span class="audit-option-icon">⤳</span>Outra coisa</button>
+        </div>
+      `;
+      div.querySelectorAll('.audit-option').forEach(btn => {
+        btn.onclick = () => {
+          div.querySelectorAll('.audit-option').forEach(b => b.classList.remove('selected', 'full', 'partial', 'none', 'other'));
+          const status = btn.dataset.status;
+          btn.classList.add('selected', status);
+          state.auditAnswers.tasks[task.id] = status;
+        };
+      });
+      el.auditTaskList.appendChild(div);
+    });
+  } else {
+    el.auditTasksSection.style.display = 'none';
+  }
+
+  el.auditModal.classList.add('show');
+}
+function finishAudit(yesterdayKey) {
+  // Salva audit
+  const audits = loadFromStorage(STORAGE.AUDITS, {});
+  audits[yesterdayKey] = {
+    promiseFulfilled: state.auditAnswers.promiseFulfilled,
+    tasks: state.auditAnswers.tasks,
+    auditedAt: new Date().toISOString(),
+  };
+  saveToStorage(STORAGE.AUDITS, audits);
+
+  // Atualiza promessa de ontem com resposta
+  if (state.auditAnswers.promiseFulfilled !== null) {
+    setPromiseFulfilled(yesterdayKey, state.auditAnswers.promiseFulfilled);
+  }
+
+  el.auditModal.classList.remove('show');
+
+  // Depois da auditoria, dispara fluxo da promessa de hoje (se ainda não tem)
+  if (!state.todayPromise) {
+    setTimeout(showPromiseModal, 350);
+  }
+}
+
+// =========== GERENCIAR FRASES ===========
+function showQuotesModal() {
+  renderQuotesList();
+  el.quotesModal.classList.add('show');
+}
+function renderQuotesList() {
+  el.quotesList.innerHTML = '';
+  // User quotes primeiro (mais relevantes pra ele)
+  state.userQuotes.forEach((text, idx) => {
+    const div = document.createElement('div');
+    div.className = 'quote-row user-added';
+    div.innerHTML = `
+      <div class="quote-text">"${escapeHtml(text)}"</div>
+      <div class="quote-source">sua</div>
+      <button class="quote-delete" data-idx="${idx}">×</button>
+    `;
+    div.querySelector('.quote-delete').onclick = () => {
+      state.userQuotes.splice(idx, 1);
+      saveToStorage(STORAGE.USER_QUOTES, state.userQuotes);
+      renderQuotesList();
+    };
+    el.quotesList.appendChild(div);
+  });
+  // Default quotes
+  DEFAULT_QUOTES.forEach(text => {
+    const div = document.createElement('div');
+    div.className = 'quote-row';
+    div.innerHTML = `
+      <div class="quote-text">"${escapeHtml(text)}"</div>
+      <div class="quote-source">foco.</div>
+    `;
+    el.quotesList.appendChild(div);
+  });
+}
+function addQuote() {
+  const text = el.newQuoteInput.value.trim();
+  if (!text) return;
+  state.userQuotes.unshift(text);
+  saveToStorage(STORAGE.USER_QUOTES, state.userQuotes);
+  el.newQuoteInput.value = '';
+  renderQuotesList();
+}
+
+// =========== DESAFIO MATEMÁTICO ===========
 const QUESTIONS = [
-  // DERIVADAS — polinômios e regras básicas
   { q: "\\frac{d}{dx}\\left[ x^3 + 2x \\right]", correct: "3x^2 + 2", wrong: ["3x^2 + 2x", "x^2 + 2", "3x^3 + 2"] },
   { q: "\\frac{d}{dx}\\left[ 3x^2 + 5x - 7 \\right]", correct: "6x + 5", wrong: ["6x + 5x", "3x + 5", "6x^2 + 5"] },
-
-  // DERIVADAS — regra da cadeia
   { q: "\\frac{d}{dx}\\left[ \\sin(2x) \\right]", correct: "2\\cos(2x)", wrong: ["\\cos(2x)", "-2\\cos(2x)", "2\\sin(2x)"] },
   { q: "\\frac{d}{dx}\\left[ \\cos(x^2) \\right]", correct: "-2x\\sin(x^2)", wrong: ["2x\\sin(x^2)", "-\\sin(x^2)", "-2x\\cos(x^2)"] },
   { q: "\\frac{d}{dx}\\left[ e^{3x} \\right]", correct: "3e^{3x}", wrong: ["e^{3x}", "3xe^{3x}", "\\frac{e^{3x}}{3}"] },
   { q: "\\frac{d}{dx}\\left[ \\ln(x^2+1) \\right]", correct: "\\frac{2x}{x^2+1}", wrong: ["\\frac{1}{x^2+1}", "2x", "\\frac{2}{x^2+1}"] },
   { q: "\\frac{d}{dx}\\left[ (x+1)^5 \\right]", correct: "5(x+1)^4", wrong: ["(x+1)^4", "5(x+1)^5", "5x^4"] },
-
-  // DERIVADAS — quociente
   { q: "\\frac{d}{dx}\\left[ \\dfrac{x}{x+1} \\right]", correct: "\\dfrac{1}{(x+1)^2}", wrong: ["\\dfrac{1}{x+1}", "-\\dfrac{1}{(x+1)^2}", "\\dfrac{x}{(x+1)^2}"] },
   { q: "\\frac{d}{dx}\\left[ \\dfrac{2x+1}{x} \\right]", correct: "-\\dfrac{1}{x^2}", wrong: ["\\dfrac{1}{x^2}", "\\dfrac{2}{x}", "\\dfrac{2x-1}{x^2}"] },
   { q: "\\frac{d}{dx}\\left[ \\dfrac{\\sin(x)}{x} \\right]", correct: "\\dfrac{x\\cos(x) - \\sin(x)}{x^2}", wrong: ["\\dfrac{\\cos(x)}{x}", "\\dfrac{\\cos(x) - \\sin(x)}{x^2}", "\\dfrac{\\sin(x) - x\\cos(x)}{x^2}"] },
-
-  // DERIVADAS — produto
   { q: "\\frac{d}{dx}\\left[ x^2 \\sin(x) \\right]", correct: "2x\\sin(x) + x^2\\cos(x)", wrong: ["2x\\cos(x)", "x^2\\cos(x)", "2x\\sin(x) - x^2\\cos(x)"] },
   { q: "\\frac{d}{dx}\\left[ x \\cdot e^x \\right]", correct: "e^x(1 + x)", wrong: ["e^x", "x e^x", "e^x(x - 1)"] },
-
-  // INTEGRAIS — básicas
   { q: "\\int 2x \\, dx", correct: "x^2 + C", wrong: ["2x^2 + C", "\\frac{x^2}{2} + C", "2 + C"] },
   { q: "\\int \\cos(x) \\, dx", correct: "\\sin(x) + C", wrong: ["-\\sin(x) + C", "\\cos(x) + C", "-\\cos(x) + C"] },
   { q: "\\int e^x \\, dx", correct: "e^x + C", wrong: ["xe^x + C", "\\dfrac{e^x}{x} + C", "\\ln(x) + C"] },
   { q: "\\int \\frac{1}{x} \\, dx", correct: "\\ln|x| + C", wrong: ["\\dfrac{1}{x^2} + C", "-\\dfrac{1}{x^2} + C", "x + C"] },
   { q: "\\int x^2 \\, dx", correct: "\\dfrac{x^3}{3} + C", wrong: ["2x + C", "x^3 + C", "3x^3 + C"] },
   { q: "\\int (3x^2 + 4x) \\, dx", correct: "x^3 + 2x^2 + C", wrong: ["6x + 4 + C", "x^3 + 4x^2 + C", "3x^3 + 2x^2 + C"] },
-
-  // INTEGRAIS — substituição
   { q: "\\int \\sin(2x) \\, dx", correct: "-\\dfrac{\\cos(2x)}{2} + C", wrong: ["\\dfrac{\\cos(2x)}{2} + C", "-2\\cos(2x) + C", "-\\cos(2x) + C"] },
   { q: "\\int e^{2x} \\, dx", correct: "\\dfrac{e^{2x}}{2} + C", wrong: ["2e^{2x} + C", "e^{2x} + C", "e^x + C"] },
   { q: "\\int 2x \\cos(x^2) \\, dx", correct: "\\sin(x^2) + C", wrong: ["\\cos(x^2) + C", "-\\sin(x^2) + C", "2\\sin(x^2) + C"] },
   { q: "\\int (2x+1)(x^2+x)^4 \\, dx", correct: "\\dfrac{(x^2+x)^5}{5} + C", wrong: ["(x^2+x)^5 + C", "5(x^2+x)^5 + C", "\\dfrac{(x^2+x)^4}{4} + C"] },
-
-  // INTEGRAÇÃO POR PARTES
   { q: "\\int x \\cdot e^x \\, dx", correct: "e^x(x - 1) + C", wrong: ["x e^x + C", "e^x(x + 1) + C", "\\dfrac{x^2 e^x}{2} + C"] },
   { q: "\\int x \\cos(x) \\, dx", correct: "x\\sin(x) + \\cos(x) + C", wrong: ["x\\sin(x) - \\cos(x) + C", "\\sin(x) + C", "-x\\sin(x) + \\cos(x) + C"] },
   { q: "\\int \\ln(x) \\, dx", correct: "x\\ln(x) - x + C", wrong: ["\\dfrac{1}{x} + C", "\\ln(x) + C", "x\\ln(x) + x + C"] },
 ];
-
 function shuffleArray(arr) {
   const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
+  for (let i=a.length-1; i>0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; }
   return a;
 }
-
-// Renderiza LaTeX com KaTeX. Se KaTeX ainda não carregou, mostra o texto cru
-// como fallback e tenta renderizar de novo em 100ms.
 function renderMath(element, latex, displayMode) {
   if (typeof katex !== 'undefined') {
-    try {
-      katex.render(latex, element, {
-        throwOnError: false,
-        displayMode: displayMode,
-      });
-    } catch (e) {
-      element.textContent = latex;
-    }
+    try { katex.render(latex, element, { throwOnError: false, displayMode }); }
+    catch(e) { element.textContent = latex; }
   } else {
     element.textContent = latex;
     setTimeout(() => renderMath(element, latex, displayMode), 100);
   }
 }
-
 function showMathChallenge() {
   loadNewQuestion();
   el.modal.classList.add('show');
   el.feedback.textContent = '';
   el.feedback.className = 'modal-feedback';
 }
-
 function loadNewQuestion() {
-  const q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+  const q = QUESTIONS[Math.floor(Math.random()*QUESTIONS.length)];
   state.currentQuestion = q;
   renderMath(el.question, q.q, true);
-
   const allOptions = shuffleArray([q.correct, ...q.wrong]);
   el.options.innerHTML = '';
   allOptions.forEach(opt => {
@@ -1104,10 +1639,11 @@ function loadNewQuestion() {
     el.options.appendChild(btn);
   });
 }
-
 function checkAnswer(answer, btn) {
   if (answer === state.currentQuestion.correct) {
+    // Acertou e parou de verdade = rendição
     el.modal.classList.remove('show');
+    recordLoss();
     forceStop();
   } else {
     btn.classList.add('wrong');
@@ -1120,40 +1656,130 @@ function checkAnswer(answer, btn) {
     }, 900);
   }
 }
-
 function closeModal() {
+  // Voltou pro foco em vez de desistir = vitória
   el.modal.classList.remove('show');
+  recordWin();
 }
 
 // =========== EVENTOS ===========
 el.startBtn.addEventListener('click', startTimer);
-el.pauseBtn.addEventListener('click', pauseTimer);
 el.stopBtn.addEventListener('click', stopTimer);
 el.addTaskBtn.addEventListener('click', addTask);
-el.taskInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') addTask();
-});
+el.taskInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addTask(); });
+el.taskTimeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addTask(); });
 el.modalCancel.addEventListener('click', closeModal);
-el.modal.addEventListener('click', (e) => {
-  if (e.target === el.modal) closeModal();
-});
-
+el.modal.addEventListener('click', (e) => { if (e.target === el.modal) closeModal(); });
 el.focusMin.addEventListener('change', () => {
-  if (!state.isRunning && !state.isPaused) {
-    state.remainingSec = (parseInt(el.focusMin.value) || 25) * 60;
+  if (!state.isRunning) {
+    state.remainingSec = (parseInt(el.focusMin.value) || 25)*60;
     updateDisplay();
   }
+  saveConfig();
 });
-
+el.breakMin.addEventListener('change', saveConfig);
 el.soundTestBtn.addEventListener('click', testSound);
 el.soundUploadBtn.addEventListener('click', () => el.soundFileInput.click());
 el.soundFileInput.addEventListener('change', handleSoundUpload);
 el.soundRemoveBtn.addEventListener('click', removeCustomSound);
 el.silenceBtn.addEventListener('click', stopAllAudio);
+el.prevDayBtn.addEventListener('click', () => changeDay(-1));
+el.nextDayBtn.addEventListener('click', () => changeDay(1));
+el.todayBtn.addEventListener('click', goToToday);
 
-updateDisplay();
-updateStatus();
-renderTasks();
+// Promessa
+el.promiseInput.addEventListener('input', () => {
+  el.commitPromiseBtn.disabled = !el.promiseInput.value.trim();
+});
+el.promiseInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) commitPromise();
+});
+el.commitPromiseBtn.addEventListener('click', commitPromise);
+el.promiseBanner.addEventListener('click', () => {
+  // Click no banner mostra a promessa em modal de leitura — pra reforçar
+  if (state.todayPromise) {
+    alert(`"${state.todayPromise.text}"\n\nLembra disso quando a vontade fraquejar.`);
+  }
+});
+
+// Auditoria
+el.finishAuditBtn.addEventListener('click', () => {
+  const yesterday = shiftDateKey(todayKey(), -1);
+  finishAudit(yesterday);
+});
+
+// Frases
+el.manageQuotesBtn.addEventListener('click', showQuotesModal);
+el.addQuoteBtn.addEventListener('click', addQuote);
+el.closeQuotesBtn.addEventListener('click', () => el.quotesModal.classList.remove('show'));
+el.quotesModal.addEventListener('click', (e) => {
+  if (e.target === el.quotesModal) el.quotesModal.classList.remove('show');
+});
+
+// =========== INIT ===========
+function init() {
+  // Config
+  const cfg = loadFromStorage(STORAGE.CONFIG, null);
+  if (cfg) {
+    state.focusMin = cfg.focusMin || 25;
+    state.breakMin = cfg.breakMin || 5;
+    el.focusMin.value = state.focusMin;
+    el.breakMin.value = state.breakMin;
+    state.remainingSec = state.focusMin * 60;
+  }
+
+  // Tarefas
+  state.tasksByDay = loadFromStorage(STORAGE.TASKS, {});
+
+  // Sessões hoje
+  const sess = loadFromStorage(STORAGE.SESSIONS_TODAY, null);
+  state.sessionsCompleted = (sess && sess.date === todayKey()) ? sess.count : 0;
+  el.sessionCount.textContent = state.sessionsCompleted;
+
+  // Stats da semana
+  state.weekStats = loadFromStorage(STORAGE.WEEK_STATS, { weekKey: '', wins: 0, losses: 0 });
+  ensureCurrentWeekStats();
+  renderWeekStats();
+
+  // Frases do usuário
+  state.userQuotes = loadFromStorage(STORAGE.USER_QUOTES, []);
+
+  // Promessa de hoje
+  state.todayPromise = getTodayPromise();
+
+  // Dia selecionado
+  state.selectedDate = todayKey();
+
+  updateDisplay();
+  updateStatus();
+  renderDayNav();
+  renderTasks();
+  renderDaySummary();
+  renderPromiseBanner();
+
+  // FLUXO DE ABERTURA: auditoria de ontem → promessa de hoje
+  const lastOpen = loadFromStorage(STORAGE.LAST_OPEN_DATE, null);
+  saveToStorage(STORAGE.LAST_OPEN_DATE, todayKey());
+
+  // Só dispara fluxos se for dia novo (ou primeira vez)
+  const isNewDay = lastOpen !== todayKey();
+
+  if (isNewDay) {
+    const auditData = getYesterdayDataForAudit();
+    if (auditData) {
+      // Mostra auditoria primeiro. Quando terminar, ela dispara a promessa.
+      setTimeout(() => showAuditModal(auditData), 500);
+      return;
+    }
+  }
+
+  // Sem auditoria, mas ainda sem promessa de hoje → mostra promessa
+  if (!state.todayPromise) {
+    setTimeout(showPromiseModal, 500);
+  }
+}
+
+init();
 </script>
 </body>
 </html>
