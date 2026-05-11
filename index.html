@@ -399,23 +399,58 @@
   .today-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
   .task-add {
-    display: grid; grid-template-columns: 1fr 70px 38px;
-    gap: 6px; margin-bottom: 14px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    margin-bottom: 6px;
   }
   .task-add input {
     background: var(--bg); border: 1px solid var(--border); color: var(--text);
     padding: 10px 12px; border-radius: 6px; font-size: 14px; width: 100%;
   }
   .task-add input:focus { outline: none; border-color: var(--accent); }
-  .task-add input[type="time"] {
-    font-family: var(--mono); font-size: 13px; padding: 10px 8px; color-scheme: dark;
+  .task-time-row {
+    display: grid;
+    grid-template-columns: 1fr 12px 1fr 38px;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 12px;
   }
-  .task-add button {
+  .task-time-row input[type="time"] {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color-scheme: dark;
+    width: 100%;
+  }
+  .task-time-row input[type="time"]:focus { outline: none; border-color: var(--accent); }
+  .task-time-row input[type="time"].conflict { border-color: var(--danger); }
+  .task-time-sep {
+    color: var(--text-faint);
+    text-align: center;
+    font-size: 14px;
+  }
+  .task-time-row button {
     background: var(--accent); color: var(--bg); border: none;
     border-radius: 6px; cursor: pointer; font-weight: 600;
-    font-size: 18px; transition: opacity 0.2s;
+    font-size: 18px; transition: opacity 0.2s; height: 100%;
   }
-  .task-add button:hover { opacity: 0.85; }
+  .task-time-row button:hover { opacity: 0.85; }
+  .task-conflict-msg {
+    font-size: 12px;
+    color: var(--danger);
+    min-height: 18px;
+    margin-bottom: 6px;
+    font-style: italic;
+    line-height: 1.3;
+  }
+  .task-conflict-msg.visible {
+    animation: shake 0.3s ease-out;
+  }
 
   .task-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
   .task-item {
@@ -439,8 +474,8 @@
     content: '✓'; color: var(--bg); font-size: 11px; font-weight: 700;
   }
   .task-time {
-    font-family: var(--mono); font-size: 12px; color: var(--accent);
-    flex-shrink: 0; min-width: 38px;
+    font-family: var(--mono); font-size: 11px; color: var(--accent);
+    flex-shrink: 0; min-width: 38px; white-space: nowrap;
   }
   .task-text {
     flex: 1; font-size: 14px;
@@ -986,9 +1021,14 @@
 
       <div class="task-add">
         <input type="text" id="taskInput" placeholder="O que fazer..." maxlength="80">
-        <input type="time" id="taskTimeInput" title="Horário (opcional)">
+      </div>
+      <div class="task-time-row">
+        <input type="time" id="taskTimeInput" title="Horário de início" placeholder="início">
+        <span class="task-time-sep">—</span>
+        <input type="time" id="taskTimeEndInput" title="Horário de fim (opcional)" placeholder="fim">
         <button id="addTaskBtn">+</button>
       </div>
+      <div class="task-conflict-msg" id="taskConflictMsg"></div>
 
       <ul class="task-list" id="taskList"></ul>
       <div class="empty-tasks" id="emptyTasks">Nenhuma tarefa nesse dia</div>
@@ -1319,6 +1359,8 @@ const el = {
   stopBtn: document.getElementById('stopBtn'),
   taskInput: document.getElementById('taskInput'),
   taskTimeInput: document.getElementById('taskTimeInput'),
+  taskTimeEndInput: document.getElementById('taskTimeEndInput'),
+  taskConflictMsg: document.getElementById('taskConflictMsg'),
   addTaskBtn: document.getElementById('addTaskBtn'),
   taskList: document.getElementById('taskList'),
   emptyTasks: document.getElementById('emptyTasks'),
@@ -1545,23 +1587,39 @@ function renderWeekStats() {
 
 // =========== ÁUDIO ===========
 function stopAllAudio() {
+  // Para áudio HTML (som customizado em loop)
   if (state.currentAudioElement) {
-    state.currentAudioElement.pause();
-    state.currentAudioElement.loop = false;
-    state.currentAudioElement.currentTime = 0;
-    state.currentAudioElement.onended = null;
+    try {
+      state.currentAudioElement.pause();
+      state.currentAudioElement.loop = false;
+      state.currentAudioElement.currentTime = 0;
+      state.currentAudioElement.onended = null;
+      // Força mudo durante 1 frame pra garantir
+      state.currentAudioElement.volume = 0;
+    } catch(e) {}
     state.currentAudioElement = null;
   }
+  // Fecha Web Audio context (cancela todos os osciladores agendados)
   if (state.currentAudioCtx) {
-    try { state.currentAudioCtx.close(); } catch(e) {}
+    try {
+      // Suspende primeiro pra parar áudio imediato, depois fecha
+      state.currentAudioCtx.suspend().catch(()=>{});
+      state.currentAudioCtx.close().catch(()=>{});
+    } catch(e) {}
     state.currentAudioCtx = null;
   }
+  // Limpa TODOS os timers agendados (inclui reagendamentos de batches)
   state.currentTimers.forEach(t => clearTimeout(t));
   state.currentTimers = [];
+  // Restaura UI
   el.soundTestBtn.classList.remove('testing');
   el.soundTestBtn.textContent = '▶ Testar';
   state.isAlarmMode = false;
   el.silenceBtn.classList.remove('show');
+  // Restaura volume do customSound pra próxima vez
+  if (state.customSound && state.customSound.audioElement) {
+    state.customSound.audioElement.volume = 1;
+  }
 }
 function playDefaultSound(isAlarm) {
   stopAllAudio();
@@ -1586,7 +1644,7 @@ function playDefaultSound(isAlarm) {
       droneOsc.connect(droneGain);
       droneGain.connect(ctx.destination);
       droneGain.gain.setValueAtTime(0, t);
-      droneGain.gain.linearRampToValueAtTime(0.08, t + 0.5); // ataque LENTO
+      droneGain.gain.linearRampToValueAtTime(0.14, t + 0.5); // volume drone (era 0.08)
       droneGain.gain.exponentialRampToValueAtTime(0.001, t + noteDuration);
       droneOsc.start(t);
       droneOsc.stop(t + noteDuration);
@@ -1599,9 +1657,9 @@ function playDefaultSound(isAlarm) {
         osc.frequency.value = freq;
         osc.connect(gain);
         gain.connect(ctx.destination);
-        const t0 = t + i * 0.18; // arpejo mais espaçado (era 0.08)
+        const t0 = t + i * 0.18;
         gain.gain.setValueAtTime(0, t0);
-        gain.gain.linearRampToValueAtTime(0.13, t0 + 0.4); // ataque LENTO (era 0.2)
+        gain.gain.linearRampToValueAtTime(0.22, t0 + 0.4); // volume notas (era 0.13)
         gain.gain.exponentialRampToValueAtTime(0.001, t0 + noteDuration - 0.2);
         osc.start(t0);
         osc.stop(t0 + noteDuration);
@@ -1714,7 +1772,10 @@ function renderTasks() {
     li.className = 'task-item';
     if (task.id === state.activeTaskId && state.selectedDate === state.activeTaskDate) li.classList.add('active');
     if (task.done) li.classList.add('done');
-    const timeHtml = task.time ? `<div class="task-time">${task.time}</div>` : '<div class="task-time"></div>';
+    let timeLabel = '';
+    if (task.time && task.timeEnd) timeLabel = `${task.time}–${task.timeEnd}`;
+    else if (task.time) timeLabel = task.time;
+    const timeHtml = `<div class="task-time">${timeLabel}</div>`;
     li.innerHTML = `
       <div class="task-checkbox" data-action="toggle"></div>
       ${timeHtml}
@@ -1763,16 +1824,106 @@ function escapeHtml(s) {
   div.textContent = s;
   return div.innerHTML;
 }
+/**
+ * Converte "HH:MM" pra minutos do dia (0-1440). null se vazio.
+ */
+function timeToMin(t) {
+  if (!t) return null;
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+/**
+ * Verifica se um intervalo [start, end] conflita com outras tarefas do dia.
+ * Retorna a tarefa conflitante, ou null se OK.
+ * Tarefas sem horário não conflitam com nada.
+ * Tarefas só com início (sem fim) só conflitam se outra tarefa as cobre.
+ */
+function findConflict(tasks, newStartMin, newEndMin, ignoreId) {
+  if (newStartMin == null) return null; // nova tarefa sem horário = sem conflito
+  for (const t of tasks) {
+    if (ignoreId && t.id === ignoreId) continue;
+    const tStart = timeToMin(t.time);
+    const tEnd = timeToMin(t.timeEnd);
+    if (tStart == null) continue;
+
+    // Caso 1: tarefa existente tem só início (sem fim)
+    if (tEnd == null) {
+      // Conflita se o início dela cai dentro do novo intervalo
+      if (newEndMin != null && tStart >= newStartMin && tStart < newEndMin) return t;
+      // Ou se a nova tarefa também é só início e tem mesmo horário
+      if (newEndMin == null && tStart === newStartMin) return t;
+      continue;
+    }
+
+    // Caso 2: tarefa existente tem início e fim
+    if (newEndMin == null) {
+      // Nova é só início: conflita se cai dentro de [tStart, tEnd)
+      if (newStartMin >= tStart && newStartMin < tEnd) return t;
+    } else {
+      // Nova tem início e fim: conflita se há sobreposição
+      if (newStartMin < tEnd && newEndMin > tStart) return t;
+    }
+  }
+  return null;
+}
+
+function showConflictMsg(conflictingTask) {
+  const label = conflictingTask.timeEnd
+    ? `${conflictingTask.time}–${conflictingTask.timeEnd}`
+    : conflictingTask.time;
+  el.taskConflictMsg.textContent = `Conflito com "${conflictingTask.text}" (${label})`;
+  el.taskConflictMsg.classList.add('visible');
+  el.taskTimeInput.classList.add('conflict');
+  el.taskTimeEndInput.classList.add('conflict');
+}
+
+function clearConflictMsg() {
+  el.taskConflictMsg.textContent = '';
+  el.taskConflictMsg.classList.remove('visible');
+  el.taskTimeInput.classList.remove('conflict');
+  el.taskTimeEndInput.classList.remove('conflict');
+}
+
 function addTask() {
   const text = el.taskInput.value.trim();
   if (!text) return;
   const time = el.taskTimeInput.value || null;
+  const timeEnd = el.taskTimeEndInput.value || null;
+
+  // Validação: fim sem início não faz sentido
+  if (timeEnd && !time) {
+    el.taskConflictMsg.textContent = 'Defina um horário de início primeiro.';
+    el.taskConflictMsg.classList.add('visible');
+    el.taskTimeInput.classList.add('conflict');
+    return;
+  }
+  // Validação: fim deve ser depois do início
+  if (time && timeEnd && timeToMin(timeEnd) <= timeToMin(time)) {
+    el.taskConflictMsg.textContent = 'O horário de fim deve ser depois do início.';
+    el.taskConflictMsg.classList.add('visible');
+    el.taskTimeEndInput.classList.add('conflict');
+    return;
+  }
+
+  // Detecção de conflito
   const tasks = getTasksForSelectedDay();
-  tasks.push({ id: Date.now(), text, time, done: false });
+  const newStartMin = timeToMin(time);
+  const newEndMin = timeToMin(timeEnd);
+  const conflict = findConflict(tasks, newStartMin, newEndMin, null);
+  if (conflict) {
+    showConflictMsg(conflict);
+    return;
+  }
+
+  clearConflictMsg();
+  tasks.push({ id: Date.now(), text, time, timeEnd, done: false });
   setTasksForSelectedDay(tasks);
   el.taskInput.value = '';
   el.taskTimeInput.value = '';
-  renderTasks(); renderDaySummary();
+  el.taskTimeEndInput.value = '';
+  renderTasks();
+  renderDaySummary();
 }
 function changeDay(delta) {
   state.selectedDate = shiftDateKey(state.selectedDate, delta);
@@ -2202,6 +2353,11 @@ el.stopBtn.addEventListener('click', stopTimer);
 el.addTaskBtn.addEventListener('click', addTask);
 el.taskInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addTask(); });
 el.taskTimeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addTask(); });
+el.taskTimeEndInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addTask(); });
+// Limpa mensagem de conflito quando o usuário ajusta os horários
+el.taskTimeInput.addEventListener('input', clearConflictMsg);
+el.taskTimeEndInput.addEventListener('input', clearConflictMsg);
+el.taskInput.addEventListener('input', clearConflictMsg);
 el.modalCancel.addEventListener('click', closeModal);
 el.modal.addEventListener('click', (e) => { if (e.target === el.modal) closeModal(); });
 el.focusMin.addEventListener('change', () => {
@@ -2288,13 +2444,20 @@ document.addEventListener('keydown', (e) => {
   const anyModalOpen = document.querySelector('.modal-overlay.show');
   if (anyModalOpen) return;
 
-  // Espaço: iniciar/parar timer
+  // Espaço:
+  // - Se alarme tocando → silencia
+  // - Senão, se rodando → para (sem skip de descanso pra evitar bug)
+  // - Senão → inicia
   if (e.code === 'Space') {
     e.preventDefault();
-    if (!state.isRunning) {
-      startTimer();
-    } else {
+    if (state.isAlarmMode) {
+      stopAllAudio();
+      return;
+    }
+    if (state.isRunning) {
       stopTimer();
+    } else {
+      startTimer();
     }
   }
 });
