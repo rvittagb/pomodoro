@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kairós — o momento certo</title>
+<link rel="icon" id="favicon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='%235a544a'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1514,9 +1515,58 @@ function formatTime(sec) {
   const s = (sec%60).toString().padStart(2,'0');
   return `${m}:${s}`;
 }
+// Cores do favicon por estado
+const FAVICON_COLORS = {
+  idle: '#5a544a',     // cinza (parado)
+  focus: '#d4a574',    // laranja (em foco)
+  break: '#7a9a6a',    // verde (descansando)
+};
+
+function setFavicon(color) {
+  const faviconEl = document.getElementById('favicon');
+  if (!faviconEl) return;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="${color}"/></svg>`;
+  // Só o # do hex precisa virar %23 pra ser data URI válido
+  faviconEl.href = `data:image/svg+xml;utf8,${svg.replace(/#/g, '%23')}`;
+}
+
+// Alterna entre tempo e tarefa ativa a cada N segundos.
+// Usado como contador interno em updateDisplay.
+let titleAltCounter = 0;
+
 function updateDisplay() {
   el.display.textContent = formatTime(state.remainingSec);
-  document.title = `${formatTime(state.remainingSec)} — ${state.isBreak ? 'descanso' : 'kairós'}`;
+
+  // Determina cor/estado pro título e favicon
+  let stateLabel, faviconColor, symbol;
+  if (!state.isRunning) {
+    stateLabel = 'kairós';
+    faviconColor = FAVICON_COLORS.idle;
+    symbol = '';
+  } else if (state.isBreak) {
+    stateLabel = 'descanso';
+    faviconColor = FAVICON_COLORS.break;
+    symbol = '○ ';
+  } else {
+    stateLabel = 'em foco';
+    faviconColor = FAVICON_COLORS.focus;
+    symbol = '● ';
+  }
+
+  // Alternância: a cada 5 segundos troca entre tempo e tarefa ativa
+  let mainText = formatTime(state.remainingSec);
+  if (state.isRunning && !state.isBreak && state.activeTaskId) {
+    const tasks = state.tasksByDay[state.activeTaskDate] || [];
+    const t = tasks.find(x => x.id === state.activeTaskId);
+    if (t && t.text) {
+      // A cada 10 segundos: 5 mostrando tempo, 5 mostrando tarefa
+      const altPhase = Math.floor(state.remainingSec / 5) % 2;
+      if (altPhase === 0) mainText = t.text.length > 28 ? t.text.slice(0, 25) + '…' : t.text;
+    }
+  }
+
+  document.title = `${symbol}${mainText} · ${stateLabel}`;
+  setFavicon(faviconColor);
 }
 function updateStatus() {
   if (!state.isRunning) {
